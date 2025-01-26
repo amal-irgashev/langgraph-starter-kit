@@ -54,14 +54,17 @@ function useChatActions() {
         setIsLoading(true);
         clearRawMessages(); // Clear previous raw messages
         try {
-            // Create the stream with messages mode
+            // Create the stream with messages-tuple mode
             const stream = await client.runs.stream(threadId, assistantId, {
                 input: {
                     messages: [
                         userMessage
                     ]
-                }
+                },
+                streamMode: "messages-tuple"
             });
+            let currentContent = '';
+            let isComplete = false;
             // Process the stream
             for await (const chunk of stream){
                 // Store raw message for debugging
@@ -73,25 +76,41 @@ function useChatActions() {
                 if (chunk.event === 'metadata') {
                     // Run started
                     console.log('Run started:', chunk.data);
-                } else if (chunk.event === 'values') {
-                    const valuesData = chunk.data;
-                    const messages = valuesData.messages;
-                    // Get the last message
-                    const lastMessage = messages[messages.length - 1];
-                    if (lastMessage.type === 'ai') {
-                        // Update streaming content
-                        setStreamingContent(lastMessage.content);
-                        // If this is the final message
-                        if (lastMessage.response_metadata?.finish_reason === 'stop') {
-                            addMessage({
-                                role: 'assistant',
-                                content: lastMessage.content
-                            });
-                            setStreamingContent('');
+                } else if (chunk.event === 'messages') {
+                    const [message, metadata] = chunk.data;
+                    if (message.type === 'AIMessageChunk') {
+                        // Handle content which can be either string or array of chunks
+                        let newContent = '';
+                        if (Array.isArray(message.content)) {
+                            // Content is an array of text chunks
+                            newContent = message.content.map((c)=>c.text).join('');
+                        } else {
+                            // Content is a string
+                            newContent = message.content;
                         }
+                        // Only append if we have new content
+                        if (newContent.trim()) {
+                            currentContent += newContent;
+                            setStreamingContent(currentContent);
+                        }
+                        // Check for completion
+                        if (message.response_metadata?.finish_reason === 'stop' || metadata.langgraph_node === 'agent' && !message.tool_calls) {
+                            isComplete = true;
+                        }
+                    } else if (message.type === 'tool') {
+                        // Handle tool response if needed
+                        console.log('Tool response:', message.content);
                     }
                 }
             }
+            // After the stream is done, if we have content and it's complete, add it as a message
+            if (currentContent && isComplete) {
+                addMessage({
+                    role: 'assistant',
+                    content: currentContent
+                });
+            }
+            setStreamingContent('');
         } catch (error) {
             console.error('Error sending message:', error);
             addMessage({
