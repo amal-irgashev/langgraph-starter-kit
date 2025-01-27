@@ -25,22 +25,49 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$langchain$
 ;
 ;
 ;
-const ClientContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createContext"])({
-    client: null
-});
+// Initial context value
+const initialContextValue = {
+    client: null,
+    isInitialized: false,
+    error: null
+};
+// Create context with initial value
+const ClientContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createContext"])(initialContextValue);
+// Utility function to create client
+const createClient = (config)=>{
+    try {
+        return new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$langchain$2f$langgraph$2d$sdk$2f$dist$2f$client$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Client"](config);
+    } catch (error) {
+        console.error('Failed to initialize client:', error);
+        throw error;
+    }
+};
 function ClientProvider({ children, config }) {
-    // Memoize the client instance to prevent unnecessary re-renders
-    const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$langchain$2f$langgraph$2d$sdk$2f$dist$2f$client$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Client"](config), [
+    // Memoize the context value to prevent unnecessary re-renders
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>{
+        try {
+            const client = createClient(config);
+            return {
+                client,
+                isInitialized: true,
+                error: null
+            };
+        } catch (error) {
+            return {
+                client: null,
+                isInitialized: false,
+                error: error instanceof Error ? error : new Error('Failed to initialize client')
+            };
+        }
+    }, [
         config
     ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ClientContext.Provider, {
-        value: {
-            client
-        },
+        value: value,
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ClientContext.tsx",
-        lineNumber: 25,
+        lineNumber: 63,
         columnNumber: 5
     }, this);
 }
@@ -48,6 +75,12 @@ function useClient() {
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useContext"])(ClientContext);
     if (!context) {
         throw new Error('useClient must be used within a ClientProvider');
+    }
+    if (context.error) {
+        throw context.error;
+    }
+    if (!context.isInitialized) {
+        throw new Error('Client is not initialized');
     }
     return context.client;
 }
@@ -66,32 +99,72 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 'use client';
 ;
 ;
+// Initial state
+const initialState = {
+    messages: [],
+    rawMessages: [],
+    isLoading: false,
+    streamingContent: ''
+};
+// Create context with a default value
 const ChatContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createContext"])(undefined);
-function ChatProvider({ children }) {
-    const [messages, setMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [rawMessages, setRawMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [streamingContent, setStreamingContent] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+// Custom hook for actions
+const useChatActions = (state, setState)=>{
     const addMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((message)=>{
-        setMessages((prev)=>[
+        setState((prev)=>({
                 ...prev,
-                message
-            ]);
-    }, []);
+                messages: [
+                    ...prev.messages,
+                    message
+                ]
+            }));
+    }, [
+        setState
+    ]);
     const addRawMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((message)=>{
-        setRawMessages((prev)=>[
+        setState((prev)=>({
                 ...prev,
-                message
-            ]);
-    }, []);
+                rawMessages: [
+                    ...prev.rawMessages,
+                    message
+                ]
+            }));
+    }, [
+        setState
+    ]);
+    const setIsLoading = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((loading)=>{
+        setState((prev)=>({
+                ...prev,
+                isLoading: loading
+            }));
+    }, [
+        setState
+    ]);
+    const setStreamingContent = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((content)=>{
+        setState((prev)=>({
+                ...prev,
+                streamingContent: content
+            }));
+    }, [
+        setState
+    ]);
     const clearRawMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])(()=>{
-        setRawMessages([]);
-    }, []);
-    const value = {
-        messages,
-        rawMessages,
-        isLoading,
-        streamingContent,
+        setState((prev)=>({
+                ...prev,
+                rawMessages: []
+            }));
+    }, [
+        setState
+    ]);
+    const setMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useCallback"])((messages)=>{
+        setState((prev)=>({
+                ...prev,
+                messages
+            }));
+    }, [
+        setState
+    ]);
+    return {
         addMessage,
         addRawMessage,
         setIsLoading,
@@ -99,12 +172,23 @@ function ChatProvider({ children }) {
         clearRawMessages,
         setMessages
     };
+};
+function ChatProvider({ children }) {
+    const [state, setState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(initialState);
+    const actions = useChatActions(state, setState);
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useMemo"])(()=>({
+            ...state,
+            ...actions
+        }), [
+        state,
+        actions
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ChatContext.Provider, {
         value: value,
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ChatContext.tsx",
-        lineNumber: 53,
+        lineNumber: 97,
         columnNumber: 10
     }, this);
 }
@@ -135,48 +219,49 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$t
 ;
 ;
 const ThreadContext = /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].createContext(null);
+// Utility functions to keep the code DRY
+const getGraphId = ()=>("TURBOPACK compile-time value", "react_agent") || 'react_agent';
+const formatThread = (thread)=>({
+        thread_id: thread.thread_id,
+        created_at: thread.created_at || new Date().toISOString(),
+        messages: []
+    });
+const formatMessages = (state)=>{
+    if (!state) return [];
+    const rawState = state;
+    if (rawState?.values?.messages && Array.isArray(rawState.values.messages)) {
+        return rawState.values.messages.map((msg)=>({
+                role: msg.type === 'human' ? 'user' : 'assistant',
+                content: msg.content
+            }));
+    }
+    if (rawState?.messages && Array.isArray(rawState.messages)) {
+        return rawState.messages.map((msg)=>({
+                role: msg.role,
+                content: msg.content
+            }));
+    }
+    return [];
+};
 function ThreadProvider({ children }) {
     const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ClientContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useClient"])();
     const [threads, setThreads] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState([]);
     const [currentThreadId, setCurrentThreadId] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState(null);
     const [isLoading, setIsLoading] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useState(false);
-    const { addMessage, setMessages } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useChat"])();
+    const { setMessages } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useChat"])();
     const loadThreads = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useCallback(async ()=>{
         if (!client) return;
         try {
             setIsLoading(true);
-            console.log('Loading threads from backend');
             const response = await client.threads.search({
                 metadata: {
-                    graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                    graph_id: getGraphId()
                 },
-                limit: 10 // Limit to 10 most recent threads
+                limit: 10
             });
-            // Log the full thread details for debugging
-            console.log('Raw thread response:', JSON.stringify(response, null, 2));
-            // Filter out any threads that don't have valid IDs and sort by creation date
-            const validThreads = response.filter((thread)=>{
-                if (!thread.thread_id) {
-                    console.warn('Found thread without ID:', thread);
-                    return false;
-                }
-                return true;
-            }).sort((a, b)=>{
-                // Sort by creation date, newest first
-                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            });
-            const formattedThreads = validThreads.map((thread)=>({
-                    thread_id: thread.thread_id,
-                    created_at: thread.created_at || new Date().toISOString(),
-                    messages: []
-                }));
-            console.log('Formatted threads:', formattedThreads.map((t)=>({
-                    id: t.thread_id,
-                    created: t.created_at
-                })));
-            setThreads(formattedThreads);
-            // Load messages for each thread
-            await Promise.all(formattedThreads.map((thread)=>loadThreadHistory(thread.thread_id)));
+            const validThreads = response.filter((thread)=>thread.thread_id).sort((a, b)=>new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(formatThread);
+            setThreads(validThreads);
+            await Promise.all(validThreads.map((thread)=>loadThreadHistory(thread.thread_id)));
         } catch (error) {
             console.error('Error loading threads:', error);
         } finally{
@@ -189,24 +274,16 @@ function ThreadProvider({ children }) {
         if (!client) throw new Error('Client not initialized');
         try {
             setIsLoading(true);
-            console.log('Creating new thread');
             const response = await client.threads.create({
                 metadata: {
-                    graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                    graph_id: getGraphId()
                 }
             });
-            console.log('Thread created:', response.thread_id);
-            const newThread = {
-                thread_id: response.thread_id,
-                created_at: new Date().toISOString(),
-                messages: []
-            };
-            // Update threads list with the new thread at the beginning
+            const newThread = formatThread(response);
             setThreads((prev)=>[
                     newThread,
                     ...prev
                 ]);
-            // Set as current thread
             setCurrentThreadId(newThread.thread_id);
             return newThread.thread_id;
         } catch (error) {
@@ -222,35 +299,11 @@ function ThreadProvider({ children }) {
         if (!client) return;
         try {
             const state = await client.threads.getState(threadId);
-            console.log('Thread state:', state);
-            // Handle both direct message array and nested message array in values
-            let messages = [];
-            // Type assertion to handle potential message locations
-            const rawState = state;
-            if (rawState?.values?.messages && Array.isArray(rawState.values.messages)) {
-                // Convert LangGraph message format to our format
-                messages = rawState.values.messages.map((msg)=>({
-                        role: msg.type === 'human' ? 'user' : 'assistant',
-                        content: msg.content
-                    }));
-            } else if (rawState?.messages && Array.isArray(rawState.messages)) {
-                messages = rawState.messages.map((msg)=>({
-                        role: msg.role,
-                        content: msg.content
-                    }));
-            }
-            console.log('Thread messages:', messages);
-            // Always update thread with latest messages, even if empty
-            setThreads((prev)=>prev.map((thread)=>{
-                    if (thread.thread_id === threadId) {
-                        return {
-                            ...thread,
-                            messages
-                        };
-                    }
-                    return thread;
-                }));
-            // Sync messages with chat context
+            const messages = formatMessages(state);
+            setThreads((prev)=>prev.map((thread)=>thread.thread_id === threadId ? {
+                        ...thread,
+                        messages
+                    } : thread));
             setMessages(messages);
         } catch (error) {
             console.error(`Error loading thread history for ${threadId}:`, error);
@@ -263,29 +316,12 @@ function ThreadProvider({ children }) {
         if (!client) return;
         try {
             setIsLoading(true);
-            console.log('Deleting thread:', threadId);
-            // Delete from backend
             await client.threads.delete(threadId);
-            console.log('Backend deletion successful');
-            // Update local state immediately
-            setThreads((prev)=>{
-                console.log('Updating local state, removing thread:', threadId);
-                return prev.filter((t)=>t.thread_id !== threadId);
-            });
-            // Reset current thread if deleted
+            setThreads((prev)=>prev.filter((t)=>t.thread_id !== threadId));
             if (currentThreadId === threadId) {
-                console.log('Resetting current thread');
                 setCurrentThreadId(null);
             }
-            // Verify deletion and refresh thread list
-            try {
-                await client.threads.getState(threadId);
-                console.error('Thread still exists after deletion');
-            } catch (error) {
-                console.log('Verified thread deletion');
-                // Only refresh the list if deletion is verified
-                await loadThreads();
-            }
+            await loadThreads();
         } catch (error) {
             console.error('Error deleting thread:', error);
             throw error;
@@ -301,47 +337,14 @@ function ThreadProvider({ children }) {
         if (!client) return;
         try {
             setIsLoading(true);
-            console.log('Fetching all threads for deletion');
-            // Get all threads without limit
             const allThreads = await client.threads.search({
                 metadata: {
-                    graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                    graph_id: getGraphId()
                 }
             });
-            console.log(`Found ${allThreads.length} threads to delete`);
-            // Delete all threads in parallel
-            await Promise.all(allThreads.map(async (thread)=>{
-                try {
-                    await client.threads.delete(thread.thread_id);
-                    console.log('Deleted thread:', thread.thread_id);
-                } catch (error) {
-                    console.error(`Error deleting thread ${thread.thread_id}:`, error);
-                }
-            }));
-            // Clear local state
+            await Promise.all(allThreads.map((thread)=>client.threads.delete(thread.thread_id).catch((error)=>console.error(`Error deleting thread ${thread.thread_id}:`, error))));
             setThreads([]);
             setCurrentThreadId(null);
-            // Verify deletion by refreshing the list
-            const remainingThreads = await client.threads.search({
-                metadata: {
-                    graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
-                }
-            });
-            if (remainingThreads.length > 0) {
-                console.warn(`${remainingThreads.length} threads still remain after deletion`);
-                // Try to delete remaining threads
-                await Promise.all(remainingThreads.map(async (thread)=>{
-                    try {
-                        await client.threads.delete(thread.thread_id);
-                        console.log('Deleted remaining thread:', thread.thread_id);
-                    } catch (error) {
-                        console.error(`Error deleting remaining thread ${thread.thread_id}:`, error);
-                    }
-                }));
-            }
-            // Final refresh
-            await loadThreads();
-            console.log('All threads deleted');
         } catch (error) {
             console.error('Error deleting all threads:', error);
             throw error;
@@ -349,17 +352,10 @@ function ThreadProvider({ children }) {
             setIsLoading(false);
         }
     }, [
-        client,
-        loadThreads
-    ]);
-    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useEffect(()=>{
-        if (client) {
-            loadThreads();
-        }
-    }, [
         client
     ]);
-    const value = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"].useMemo(()=>({
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ThreadContext.Provider, {
+        value: {
             threads,
             currentThreadId,
             isLoading,
@@ -369,22 +365,11 @@ function ThreadProvider({ children }) {
             deleteThread,
             deleteAllThreads,
             setCurrentThreadId
-        }), [
-        threads,
-        currentThreadId,
-        isLoading,
-        loadThreads,
-        createNewThread,
-        loadThreadHistory,
-        deleteThread,
-        deleteAllThreads
-    ]);
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(ThreadContext.Provider, {
-        value: value,
+        },
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ThreadContext.tsx",
-        lineNumber: 289,
+        lineNumber: 172,
         columnNumber: 5
     }, this);
 }

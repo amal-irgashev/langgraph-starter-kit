@@ -18,35 +18,68 @@ var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signatur
 'use client';
 ;
 ;
-const ClientContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])({
-    client: null
-});
+// Initial context value
+const initialContextValue = {
+    client: null,
+    isInitialized: false,
+    error: null
+};
+// Create context with initial value
+const ClientContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(initialContextValue);
+// Utility function to create client
+const createClient = (config)=>{
+    try {
+        return new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$langchain$2f$langgraph$2d$sdk$2f$dist$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Client"](config);
+    } catch (error) {
+        console.error('Failed to initialize client:', error);
+        throw error;
+    }
+};
 function ClientProvider({ children, config }) {
     _s();
-    // Memoize the client instance to prevent unnecessary re-renders
-    const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "ClientProvider.useMemo[client]": ()=>new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$langchain$2f$langgraph$2d$sdk$2f$dist$2f$client$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Client"](config)
-    }["ClientProvider.useMemo[client]"], [
+    // Memoize the context value to prevent unnecessary re-renders
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ClientProvider.useMemo[value]": ()=>{
+            try {
+                const client = createClient(config);
+                return {
+                    client,
+                    isInitialized: true,
+                    error: null
+                };
+            } catch (error) {
+                return {
+                    client: null,
+                    isInitialized: false,
+                    error: error instanceof Error ? error : new Error('Failed to initialize client')
+                };
+            }
+        }
+    }["ClientProvider.useMemo[value]"], [
         config
     ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ClientContext.Provider, {
-        value: {
-            client
-        },
+        value: value,
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ClientContext.tsx",
-        lineNumber: 25,
+        lineNumber: 63,
         columnNumber: 5
     }, this);
 }
-_s(ClientProvider, "/KoUf8dpTovukU4B6fVhiiXXF1g=");
+_s(ClientProvider, "tPauEVZ6EeuERV9ttvKTwQ7++Gw=");
 _c = ClientProvider;
 function useClient() {
     _s1();
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(ClientContext);
     if (!context) {
         throw new Error('useClient must be used within a ClientProvider');
+    }
+    if (context.error) {
+        throw context.error;
+    }
+    if (!context.isInitialized) {
+        throw new Error('Client is not initialized');
     }
     return context.client;
 }
@@ -69,46 +102,100 @@ __turbopack_esm__({
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
 ;
-var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signature();
+var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signature(), _s2 = __turbopack_refresh__.signature();
 'use client';
 ;
+// Initial state
+const initialState = {
+    messages: [],
+    rawMessages: [],
+    isLoading: false,
+    streamingContent: ''
+};
+// Create context with a default value
 const ChatContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
-function ChatProvider({ children }) {
+// Custom hook for actions
+const useChatActions = (state, setState)=>{
     _s();
-    const [messages, setMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [rawMessages, setRawMessages] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
-    const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    const [streamingContent, setStreamingContent] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])('');
     const addMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
-        "ChatProvider.useCallback[addMessage]": (message)=>{
-            setMessages({
-                "ChatProvider.useCallback[addMessage]": (prev)=>[
+        "useChatActions.useCallback[addMessage]": (message)=>{
+            setState({
+                "useChatActions.useCallback[addMessage]": (prev)=>({
                         ...prev,
-                        message
-                    ]
-            }["ChatProvider.useCallback[addMessage]"]);
+                        messages: [
+                            ...prev.messages,
+                            message
+                        ]
+                    })
+            }["useChatActions.useCallback[addMessage]"]);
         }
-    }["ChatProvider.useCallback[addMessage]"], []);
+    }["useChatActions.useCallback[addMessage]"], [
+        setState
+    ]);
     const addRawMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
-        "ChatProvider.useCallback[addRawMessage]": (message)=>{
-            setRawMessages({
-                "ChatProvider.useCallback[addRawMessage]": (prev)=>[
+        "useChatActions.useCallback[addRawMessage]": (message)=>{
+            setState({
+                "useChatActions.useCallback[addRawMessage]": (prev)=>({
                         ...prev,
-                        message
-                    ]
-            }["ChatProvider.useCallback[addRawMessage]"]);
+                        rawMessages: [
+                            ...prev.rawMessages,
+                            message
+                        ]
+                    })
+            }["useChatActions.useCallback[addRawMessage]"]);
         }
-    }["ChatProvider.useCallback[addRawMessage]"], []);
+    }["useChatActions.useCallback[addRawMessage]"], [
+        setState
+    ]);
+    const setIsLoading = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatActions.useCallback[setIsLoading]": (loading)=>{
+            setState({
+                "useChatActions.useCallback[setIsLoading]": (prev)=>({
+                        ...prev,
+                        isLoading: loading
+                    })
+            }["useChatActions.useCallback[setIsLoading]"]);
+        }
+    }["useChatActions.useCallback[setIsLoading]"], [
+        setState
+    ]);
+    const setStreamingContent = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatActions.useCallback[setStreamingContent]": (content)=>{
+            setState({
+                "useChatActions.useCallback[setStreamingContent]": (prev)=>({
+                        ...prev,
+                        streamingContent: content
+                    })
+            }["useChatActions.useCallback[setStreamingContent]"]);
+        }
+    }["useChatActions.useCallback[setStreamingContent]"], [
+        setState
+    ]);
     const clearRawMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
-        "ChatProvider.useCallback[clearRawMessages]": ()=>{
-            setRawMessages([]);
+        "useChatActions.useCallback[clearRawMessages]": ()=>{
+            setState({
+                "useChatActions.useCallback[clearRawMessages]": (prev)=>({
+                        ...prev,
+                        rawMessages: []
+                    })
+            }["useChatActions.useCallback[clearRawMessages]"]);
         }
-    }["ChatProvider.useCallback[clearRawMessages]"], []);
-    const value = {
-        messages,
-        rawMessages,
-        isLoading,
-        streamingContent,
+    }["useChatActions.useCallback[clearRawMessages]"], [
+        setState
+    ]);
+    const setMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatActions.useCallback[setMessages]": (messages)=>{
+            setState({
+                "useChatActions.useCallback[setMessages]": (prev)=>({
+                        ...prev,
+                        messages
+                    })
+            }["useChatActions.useCallback[setMessages]"]);
+        }
+    }["useChatActions.useCallback[setMessages]"], [
+        setState
+    ]);
+    return {
         addMessage,
         addRawMessage,
         setIsLoading,
@@ -116,26 +203,45 @@ function ChatProvider({ children }) {
         clearRawMessages,
         setMessages
     };
+};
+_s(useChatActions, "qeUFqCFUyYDTC1edLlIcWIlSeNY=");
+function ChatProvider({ children }) {
+    _s1();
+    const [state, setState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(initialState);
+    const actions = useChatActions(state, setState);
+    const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
+        "ChatProvider.useMemo[value]": ()=>({
+                ...state,
+                ...actions
+            })
+    }["ChatProvider.useMemo[value]"], [
+        state,
+        actions
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ChatContext.Provider, {
         value: value,
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ChatContext.tsx",
-        lineNumber: 53,
+        lineNumber: 97,
         columnNumber: 10
     }, this);
 }
-_s(ChatProvider, "JJ7ybOcmt15VPD/J+MUZfbv07Bg=");
+_s1(ChatProvider, "lEqJ0wZtbE8ZtXsVUnMlWb3c7Vs=", false, function() {
+    return [
+        useChatActions
+    ];
+});
 _c = ChatProvider;
 function useChat() {
-    _s1();
+    _s2();
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(ChatContext);
     if (context === undefined) {
         throw new Error('useChat must be used within a ChatProvider');
     }
     return context;
 }
-_s1(useChat, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
+_s2(useChat, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
 var _c;
 __turbopack_refresh__.register(_c, "ChatProvider");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -163,58 +269,55 @@ var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signatur
 ;
 ;
 const ThreadContext = /*#__PURE__*/ __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].createContext(null);
+// Utility functions to keep the code DRY
+const getGraphId = ()=>("TURBOPACK compile-time value", "react_agent") || 'react_agent';
+const formatThread = (thread)=>({
+        thread_id: thread.thread_id,
+        created_at: thread.created_at || new Date().toISOString(),
+        messages: []
+    });
+const formatMessages = (state)=>{
+    if (!state) return [];
+    const rawState = state;
+    if (rawState?.values?.messages && Array.isArray(rawState.values.messages)) {
+        return rawState.values.messages.map((msg)=>({
+                role: msg.type === 'human' ? 'user' : 'assistant',
+                content: msg.content
+            }));
+    }
+    if (rawState?.messages && Array.isArray(rawState.messages)) {
+        return rawState.messages.map((msg)=>({
+                role: msg.role,
+                content: msg.content
+            }));
+    }
+    return [];
+};
 function ThreadProvider({ children }) {
     _s();
     const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ClientContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useClient"])();
     const [threads, setThreads] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useState([]);
     const [currentThreadId, setCurrentThreadId] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useState(null);
     const [isLoading, setIsLoading] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useState(false);
-    const { addMessage, setMessages } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChat"])();
+    const { setMessages } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChat"])();
     const loadThreads = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useCallback({
         "ThreadProvider.useCallback[loadThreads]": async ()=>{
             if (!client) return;
             try {
                 setIsLoading(true);
-                console.log('Loading threads from backend');
                 const response = await client.threads.search({
                     metadata: {
-                        graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                        graph_id: getGraphId()
                     },
-                    limit: 10 // Limit to 10 most recent threads
+                    limit: 10
                 });
-                // Log the full thread details for debugging
-                console.log('Raw thread response:', JSON.stringify(response, null, 2));
-                // Filter out any threads that don't have valid IDs and sort by creation date
                 const validThreads = response.filter({
-                    "ThreadProvider.useCallback[loadThreads].validThreads": (thread)=>{
-                        if (!thread.thread_id) {
-                            console.warn('Found thread without ID:', thread);
-                            return false;
-                        }
-                        return true;
-                    }
+                    "ThreadProvider.useCallback[loadThreads].validThreads": (thread)=>thread.thread_id
                 }["ThreadProvider.useCallback[loadThreads].validThreads"]).sort({
-                    "ThreadProvider.useCallback[loadThreads].validThreads": (a, b)=>{
-                        // Sort by creation date, newest first
-                        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-                    }
-                }["ThreadProvider.useCallback[loadThreads].validThreads"]);
-                const formattedThreads = validThreads.map({
-                    "ThreadProvider.useCallback[loadThreads].formattedThreads": (thread)=>({
-                            thread_id: thread.thread_id,
-                            created_at: thread.created_at || new Date().toISOString(),
-                            messages: []
-                        })
-                }["ThreadProvider.useCallback[loadThreads].formattedThreads"]);
-                console.log('Formatted threads:', formattedThreads.map({
-                    "ThreadProvider.useCallback[loadThreads]": (t)=>({
-                            id: t.thread_id,
-                            created: t.created_at
-                        })
-                }["ThreadProvider.useCallback[loadThreads]"]));
-                setThreads(formattedThreads);
-                // Load messages for each thread
-                await Promise.all(formattedThreads.map({
+                    "ThreadProvider.useCallback[loadThreads].validThreads": (a, b)=>new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                }["ThreadProvider.useCallback[loadThreads].validThreads"]).map(formatThread);
+                setThreads(validThreads);
+                await Promise.all(validThreads.map({
                     "ThreadProvider.useCallback[loadThreads]": (thread)=>loadThreadHistory(thread.thread_id)
                 }["ThreadProvider.useCallback[loadThreads]"]));
             } catch (error) {
@@ -231,26 +334,18 @@ function ThreadProvider({ children }) {
             if (!client) throw new Error('Client not initialized');
             try {
                 setIsLoading(true);
-                console.log('Creating new thread');
                 const response = await client.threads.create({
                     metadata: {
-                        graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                        graph_id: getGraphId()
                     }
                 });
-                console.log('Thread created:', response.thread_id);
-                const newThread = {
-                    thread_id: response.thread_id,
-                    created_at: new Date().toISOString(),
-                    messages: []
-                };
-                // Update threads list with the new thread at the beginning
+                const newThread = formatThread(response);
                 setThreads({
                     "ThreadProvider.useCallback[createNewThread]": (prev)=>[
                             newThread,
                             ...prev
                         ]
                 }["ThreadProvider.useCallback[createNewThread]"]);
-                // Set as current thread
                 setCurrentThreadId(newThread.thread_id);
                 return newThread.thread_id;
             } catch (error) {
@@ -268,43 +363,15 @@ function ThreadProvider({ children }) {
             if (!client) return;
             try {
                 const state = await client.threads.getState(threadId);
-                console.log('Thread state:', state);
-                // Handle both direct message array and nested message array in values
-                let messages = [];
-                // Type assertion to handle potential message locations
-                const rawState = state;
-                if (rawState?.values?.messages && Array.isArray(rawState.values.messages)) {
-                    // Convert LangGraph message format to our format
-                    messages = rawState.values.messages.map({
-                        "ThreadProvider.useCallback[loadThreadHistory]": (msg)=>({
-                                role: msg.type === 'human' ? 'user' : 'assistant',
-                                content: msg.content
-                            })
-                    }["ThreadProvider.useCallback[loadThreadHistory]"]);
-                } else if (rawState?.messages && Array.isArray(rawState.messages)) {
-                    messages = rawState.messages.map({
-                        "ThreadProvider.useCallback[loadThreadHistory]": (msg)=>({
-                                role: msg.role,
-                                content: msg.content
-                            })
-                    }["ThreadProvider.useCallback[loadThreadHistory]"]);
-                }
-                console.log('Thread messages:', messages);
-                // Always update thread with latest messages, even if empty
+                const messages = formatMessages(state);
                 setThreads({
                     "ThreadProvider.useCallback[loadThreadHistory]": (prev)=>prev.map({
-                            "ThreadProvider.useCallback[loadThreadHistory]": (thread)=>{
-                                if (thread.thread_id === threadId) {
-                                    return {
-                                        ...thread,
-                                        messages
-                                    };
-                                }
-                                return thread;
-                            }
+                            "ThreadProvider.useCallback[loadThreadHistory]": (thread)=>thread.thread_id === threadId ? {
+                                    ...thread,
+                                    messages
+                                } : thread
                         }["ThreadProvider.useCallback[loadThreadHistory]"])
                 }["ThreadProvider.useCallback[loadThreadHistory]"]);
-                // Sync messages with chat context
                 setMessages(messages);
             } catch (error) {
                 console.error(`Error loading thread history for ${threadId}:`, error);
@@ -319,33 +386,16 @@ function ThreadProvider({ children }) {
             if (!client) return;
             try {
                 setIsLoading(true);
-                console.log('Deleting thread:', threadId);
-                // Delete from backend
                 await client.threads.delete(threadId);
-                console.log('Backend deletion successful');
-                // Update local state immediately
                 setThreads({
-                    "ThreadProvider.useCallback[deleteThread]": (prev)=>{
-                        console.log('Updating local state, removing thread:', threadId);
-                        return prev.filter({
+                    "ThreadProvider.useCallback[deleteThread]": (prev)=>prev.filter({
                             "ThreadProvider.useCallback[deleteThread]": (t)=>t.thread_id !== threadId
-                        }["ThreadProvider.useCallback[deleteThread]"]);
-                    }
+                        }["ThreadProvider.useCallback[deleteThread]"])
                 }["ThreadProvider.useCallback[deleteThread]"]);
-                // Reset current thread if deleted
                 if (currentThreadId === threadId) {
-                    console.log('Resetting current thread');
                     setCurrentThreadId(null);
                 }
-                // Verify deletion and refresh thread list
-                try {
-                    await client.threads.getState(threadId);
-                    console.error('Thread still exists after deletion');
-                } catch (error) {
-                    console.log('Verified thread deletion');
-                    // Only refresh the list if deletion is verified
-                    await loadThreads();
-                }
+                await loadThreads();
             } catch (error) {
                 console.error('Error deleting thread:', error);
                 throw error;
@@ -363,51 +413,18 @@ function ThreadProvider({ children }) {
             if (!client) return;
             try {
                 setIsLoading(true);
-                console.log('Fetching all threads for deletion');
-                // Get all threads without limit
                 const allThreads = await client.threads.search({
                     metadata: {
-                        graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
+                        graph_id: getGraphId()
                     }
                 });
-                console.log(`Found ${allThreads.length} threads to delete`);
-                // Delete all threads in parallel
                 await Promise.all(allThreads.map({
-                    "ThreadProvider.useCallback[deleteAllThreads]": async (thread)=>{
-                        try {
-                            await client.threads.delete(thread.thread_id);
-                            console.log('Deleted thread:', thread.thread_id);
-                        } catch (error) {
-                            console.error(`Error deleting thread ${thread.thread_id}:`, error);
-                        }
-                    }
+                    "ThreadProvider.useCallback[deleteAllThreads]": (thread)=>client.threads.delete(thread.thread_id).catch({
+                            "ThreadProvider.useCallback[deleteAllThreads]": (error)=>console.error(`Error deleting thread ${thread.thread_id}:`, error)
+                        }["ThreadProvider.useCallback[deleteAllThreads]"])
                 }["ThreadProvider.useCallback[deleteAllThreads]"]));
-                // Clear local state
                 setThreads([]);
                 setCurrentThreadId(null);
-                // Verify deletion by refreshing the list
-                const remainingThreads = await client.threads.search({
-                    metadata: {
-                        graph_id: ("TURBOPACK compile-time value", "react_agent") || 'react_agent'
-                    }
-                });
-                if (remainingThreads.length > 0) {
-                    console.warn(`${remainingThreads.length} threads still remain after deletion`);
-                    // Try to delete remaining threads
-                    await Promise.all(remainingThreads.map({
-                        "ThreadProvider.useCallback[deleteAllThreads]": async (thread)=>{
-                            try {
-                                await client.threads.delete(thread.thread_id);
-                                console.log('Deleted remaining thread:', thread.thread_id);
-                            } catch (error) {
-                                console.error(`Error deleting remaining thread ${thread.thread_id}:`, error);
-                            }
-                        }
-                    }["ThreadProvider.useCallback[deleteAllThreads]"]));
-                }
-                // Final refresh
-                await loadThreads();
-                console.log('All threads deleted');
             } catch (error) {
                 console.error('Error deleting all threads:', error);
                 throw error;
@@ -416,50 +433,28 @@ function ThreadProvider({ children }) {
             }
         }
     }["ThreadProvider.useCallback[deleteAllThreads]"], [
-        client,
-        loadThreads
-    ]);
-    __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useEffect({
-        "ThreadProvider.useEffect": ()=>{
-            if (client) {
-                loadThreads();
-            }
-        }
-    }["ThreadProvider.useEffect"], [
         client
     ]);
-    const value = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"].useMemo({
-        "ThreadProvider.useMemo[value]": ()=>({
-                threads,
-                currentThreadId,
-                isLoading,
-                loadThreads,
-                createNewThread,
-                loadThreadHistory,
-                deleteThread,
-                deleteAllThreads,
-                setCurrentThreadId
-            })
-    }["ThreadProvider.useMemo[value]"], [
-        threads,
-        currentThreadId,
-        isLoading,
-        loadThreads,
-        createNewThread,
-        loadThreadHistory,
-        deleteThread,
-        deleteAllThreads
-    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ThreadContext.Provider, {
-        value: value,
+        value: {
+            threads,
+            currentThreadId,
+            isLoading,
+            loadThreads,
+            createNewThread,
+            loadThreadHistory,
+            deleteThread,
+            deleteAllThreads,
+            setCurrentThreadId
+        },
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ThreadContext.tsx",
-        lineNumber: 289,
+        lineNumber: 172,
         columnNumber: 5
     }, this);
 }
-_s(ThreadProvider, "ZWhftnNZrw1gf12D3g10kAfPchs=", false, function() {
+_s(ThreadProvider, "cs4dPEKbwdLk/zZ+ynwJ4Y2jtnc=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ClientContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useClient"],
         __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChat"]

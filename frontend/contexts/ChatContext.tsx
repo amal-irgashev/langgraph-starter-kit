@@ -1,14 +1,17 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { Message, RawMessage } from '@/types/chat';
-import { useEventSource } from '@/hooks/useEventSource';
 
-interface ChatContextType {
+// Types
+interface ChatState {
   messages: Message[];
   rawMessages: RawMessage[];
   isLoading: boolean;
   streamingContent: string;
+}
+
+interface ChatContextType extends ChatState {
   addMessage: (message: Message) => void;
   addRawMessage: (message: RawMessage) => void;
   setIsLoading: (loading: boolean) => void;
@@ -17,31 +20,62 @@ interface ChatContextType {
   setMessages: (messages: Message[]) => void;
 }
 
+// Initial state
+const initialState: ChatState = {
+  messages: [],
+  rawMessages: [],
+  isLoading: false,
+  streamingContent: '',
+};
+
+// Create context with a default value
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export function ChatProvider({ children }: { children: React.ReactNode }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [rawMessages, setRawMessages] = useState<RawMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [streamingContent, setStreamingContent] = useState('');
-
+// Custom hook for actions
+const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStateAction<ChatState>>) => {
   const addMessage = useCallback((message: Message) => {
-    setMessages(prev => [...prev, message]);
-  }, []);
+    setState(prev => ({
+      ...prev,
+      messages: [...prev.messages, message]
+    }));
+  }, [setState]);
 
   const addRawMessage = useCallback((message: RawMessage) => {
-    setRawMessages(prev => [...prev, message]);
-  }, []);
+    setState(prev => ({
+      ...prev,
+      rawMessages: [...prev.rawMessages, message]
+    }));
+  }, [setState]);
+
+  const setIsLoading = useCallback((loading: boolean) => {
+    setState(prev => ({
+      ...prev,
+      isLoading: loading
+    }));
+  }, [setState]);
+
+  const setStreamingContent = useCallback((content: string) => {
+    setState(prev => ({
+      ...prev,
+      streamingContent: content
+    }));
+  }, [setState]);
 
   const clearRawMessages = useCallback(() => {
-    setRawMessages([]);
-  }, []);
+    setState(prev => ({
+      ...prev,
+      rawMessages: []
+    }));
+  }, [setState]);
 
-  const value = {
-    messages,
-    rawMessages,
-    isLoading,
-    streamingContent,
+  const setMessages = useCallback((messages: Message[]) => {
+    setState(prev => ({
+      ...prev,
+      messages
+    }));
+  }, [setState]);
+
+  return {
     addMessage,
     addRawMessage,
     setIsLoading,
@@ -49,6 +83,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     clearRawMessages,
     setMessages,
   };
+};
+
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = useState<ChatState>(initialState);
+  const actions = useChatActions(state, setState);
+
+  const value = useMemo(() => ({
+    ...state,
+    ...actions
+  }), [state, actions]);
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

@@ -159,26 +159,26 @@ export function DebugPanel({ messages }: DebugPanelProps) {
       return (
         <div className="space-y-3">
           <div className="space-y-2">
-            <div className="text-white/80 text-xs font-medium">Streaming State</div>
-            <div className="text-white/70 text-xs break-words pl-2 space-y-2">
+            <div className="text-[#F6DF79] text-xs font-medium">Streaming State</div>
+            <div className="text-white/70 text-xs break-words pl-2 space-y-2 max-w-full">
               {msg.data.content && (
-                <div>
-                  <span className="text-white/60">Content:</span> {msg.data.content}
+                <div className="break-words">
+                  <span className="text-blue-300/90">Content:</span> {msg.data.content}
                 </div>
               )}
               {msg.data.state && (
                 <div>
-                  <span className="text-white/60">State:</span>
-                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto">
-                    {JSON.stringify(msg.data.state, null, 2)}
+                  <span className="text-blue-300/90">State:</span>
+                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                    <JsonSyntax>{msg.data.state}</JsonSyntax>
                   </pre>
                 </div>
               )}
               {msg.data.metadata && (
                 <div>
-                  <span className="text-white/60">Metadata:</span>
-                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono">
-                    {JSON.stringify(msg.data.metadata, null, 2)}
+                  <span className="text-blue-300/90">Metadata:</span>
+                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                    <JsonSyntax>{msg.data.metadata}</JsonSyntax>
                   </pre>
                 </div>
               )}
@@ -194,18 +194,18 @@ export function DebugPanel({ messages }: DebugPanelProps) {
           {msg.data.map((item: any, mIdx: number) => (
             <div key={mIdx} className="space-y-2">
               {item.type && (
-                <div className="text-white/80 text-xs font-medium">
+                <div className="text-[#F6DF79] text-xs font-medium">
                   Type: {item.type}
                 </div>
               )}
               {item.content && (
                 <div className="text-white/70 text-xs break-words pl-2">
-                  Content: {item.content}
+                  <span className="text-blue-300/90">Content:</span> {item.content}
                 </div>
               )}
               {mIdx === 1 && item && (
-                <pre className="text-white/60 text-xs font-mono bg-white/5 p-2 rounded-lg mt-2">
-                  {JSON.stringify(item, null, 2)}
+                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-2 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                  <JsonSyntax>{item}</JsonSyntax>
                 </pre>
               )}
             </div>
@@ -219,22 +219,22 @@ export function DebugPanel({ messages }: DebugPanelProps) {
       return (
         <div className="space-y-3">
           <div className="space-y-2">
-            <div className="text-white/80 text-xs font-medium">Thread State</div>
+            <div className="text-[#F6DF79] text-xs font-medium">Thread State</div>
             
             {/* Checkpoint Info */}
             {state.checkpoint && (
               <div className="space-y-2">
-                <div className="text-white/70 text-xs">Checkpoint</div>
+                <div className="text-blue-300/90 text-xs">Checkpoint</div>
                 <div className="pl-2 space-y-1 text-xs">
-                  <div className="text-white/70">
-                    <span className="text-white/50">ID:</span> {state.checkpoint.checkpoint_id}
+                  <div className="text-white/70 break-words">
+                    <span className="text-emerald-300/90">ID:</span> {state.checkpoint.checkpoint_id}
                   </div>
-                  <div className="text-white/70">
-                    <span className="text-white/50">Created:</span> {new Date(state.checkpoint.created_at).toLocaleString()}
+                  <div className="text-white/70 break-words">
+                    <span className="text-emerald-300/90">Created:</span> {new Date(state.checkpoint.created_at).toLocaleString()}
                   </div>
                   {state.checkpoint.parent_checkpoint_id && (
-                    <div className="text-white/70">
-                      <span className="text-white/50">Parent:</span> {state.checkpoint.parent_checkpoint_id}
+                    <div className="text-white/70 break-words">
+                      <span className="text-emerald-300/90">Parent:</span> {state.checkpoint.parent_checkpoint_id}
                     </div>
                   )}
                 </div>
@@ -244,9 +244,9 @@ export function DebugPanel({ messages }: DebugPanelProps) {
             {/* Values */}
             {state.values && (
               <div className="space-y-2">
-                <div className="text-white/70 text-xs">Values</div>
-                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto">
-                  {JSON.stringify(state.values, null, 2)}
+                <div className="text-blue-300/90 text-xs">Values</div>
+                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                  <JsonSyntax>{state.values}</JsonSyntax>
                 </pre>
               </div>
             )}
@@ -254,10 +254,10 @@ export function DebugPanel({ messages }: DebugPanelProps) {
             {/* Tasks */}
             {state.tasks && (
               <div className="space-y-2">
-                <div className="text-white/70 text-xs">Tasks {state.tasks.length > 0 ? `(${state.tasks.length})` : ''}</div>
+                <div className="text-blue-300/90 text-xs">Tasks {state.tasks.length > 0 ? `(${state.tasks.length})` : ''}</div>
                 {state.tasks.length > 0 ? (
-                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto">
-                    {JSON.stringify(state.tasks, null, 2)}
+                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                    <JsonSyntax>{state.tasks}</JsonSyntax>
                   </pre>
                 ) : (
                   <div className="text-white/40 text-xs pl-2">No active tasks</div>
@@ -268,10 +268,10 @@ export function DebugPanel({ messages }: DebugPanelProps) {
             {/* Next Steps */}
             {state.next && (
               <div className="space-y-2">
-                <div className="text-white/70 text-xs">Next Steps {state.next.length > 0 ? `(${state.next.length})` : ''}</div>
+                <div className="text-blue-300/90 text-xs">Next Steps {state.next.length > 0 ? `(${state.next.length})` : ''}</div>
                 {state.next.length > 0 ? (
-                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto">
-                    {JSON.stringify(state.next, null, 2)}
+                  <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                    <JsonSyntax>{state.next}</JsonSyntax>
                   </pre>
                 ) : (
                   <div className="text-white/40 text-xs pl-2">No pending steps</div>
@@ -282,9 +282,9 @@ export function DebugPanel({ messages }: DebugPanelProps) {
             {/* Metadata */}
             {state.metadata && (
               <div className="space-y-2">
-                <div className="text-white/70 text-xs">Metadata</div>
-                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto">
-                  {JSON.stringify(state.metadata, null, 2)}
+                <div className="text-blue-300/90 text-xs">Metadata</div>
+                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-1 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                  <JsonSyntax>{state.metadata}</JsonSyntax>
                 </pre>
               </div>
             )}
@@ -295,8 +295,8 @@ export function DebugPanel({ messages }: DebugPanelProps) {
                 <summary className="text-white/40 text-xs cursor-pointer hover:text-white/60">
                   Raw State
                 </summary>
-                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-2 font-mono overflow-x-auto">
-                  {JSON.stringify(state, null, 2)}
+                <pre className="text-xs bg-white/5 p-2 rounded-lg mt-2 font-mono overflow-x-auto whitespace-pre-wrap break-words">
+                  <JsonSyntax>{state}</JsonSyntax>
                 </pre>
               </details>
             </div>
@@ -310,9 +310,31 @@ export function DebugPanel({ messages }: DebugPanelProps) {
     }
 
     return (
-      <pre className="text-white/70 text-xs whitespace-pre-wrap overflow-x-auto font-mono">
-        {JSON.stringify(msg.data, null, 2)}
+      <pre className="text-white/70 text-xs whitespace-pre-wrap overflow-x-auto font-mono break-words">
+        <JsonSyntax>{msg.data}</JsonSyntax>
       </pre>
+    );
+  };
+
+  // Add JsonSyntax component for colorful JSON formatting
+  const JsonSyntax = ({ children }: { children: any }) => {
+    const jsonString = JSON.stringify(children, null, 2);
+    const coloredJson = jsonString.replace(
+      /"([^"]+)":/g,
+      '<span class="text-emerald-300/90">"$1"</span>:'
+    ).replace(
+      /: "(.*?)"/g,
+      ': <span class="text-amber-300/90">"$1"</span>'
+    ).replace(
+      /: (true|false|null|\d+)/g,
+      ': <span class="text-blue-300/90">$1</span>'
+    );
+
+    return (
+      <div 
+        className="text-white/70"
+        dangerouslySetInnerHTML={{ __html: coloredJson }} 
+      />
     );
   };
 
@@ -359,11 +381,24 @@ export function DebugPanel({ messages }: DebugPanelProps) {
                 <div className="rounded-lg overflow-hidden border border-white/5 bg-white/5">
                   <div className={cn(
                     "px-3 py-2 text-xs font-medium flex items-center gap-2 bg-white/5",
-                    msg.event === 'metadata' ? "text-white/80" :
-                    msg.event === 'stream_state' ? "text-white/80" :
+                    msg.event === 'metadata' ? "text-emerald-300/90" :
+                    msg.event === 'stream_state' ? "text-amber-300/90" :
+                    msg.event === 'messages' ? "text-blue-300/90" :
+                    msg.event === 'state_update' ? "text-purple-300/90" :
+                    msg.event === 'updates' ? "text-purple-300/90" :
+                    msg.event === 'events' ? "text-rose-300/90" :
                     "text-white/80"
                   )}>
-                    <ChevronRight className="w-3 h-3" />
+                    <ChevronRight className={cn(
+                      "w-3 h-3",
+                      msg.event === 'metadata' ? "text-emerald-300/90" :
+                      msg.event === 'stream_state' ? "text-amber-300/90" :
+                      msg.event === 'messages' ? "text-blue-300/90" :
+                      msg.event === 'state_update' ? "text-purple-300/90" :
+                      msg.event === 'updates' ? "text-purple-300/90" :
+                      msg.event === 'events' ? "text-rose-300/90" :
+                      "text-white/80"
+                    )} />
                     <span>event: {msg.event}</span>
                   </div>
 

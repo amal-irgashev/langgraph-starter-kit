@@ -37,8 +37,8 @@ export function ChatInput({ onSendMessage, isLoading, isReady = true }: ChatInpu
             onChange={(e) => setInput(e.target.value)}
             placeholder={isReady ? "Type a message..." : "Select or create a chat to start"}
             className={cn(
-              "w-full bg-[#161616] text-white/90 rounded-lg pl-4 pr-10 py-3",
-              "focus:outline-none focus:ring-1 focus:ring-white/10 focus:bg-[#1A1A1A]",
+              "w-full bg-white/5 text-white/90 rounded-lg pl-4 pr-10 py-3",
+              "focus:outline-none focus:ring-1 focus:ring-[#F6DF79]/20 focus:bg-white/10",
               "placeholder-white/40 transition-all duration-200",
               (!isReady || isLoading) && "opacity-50 cursor-not-allowed"
             )}
@@ -46,7 +46,7 @@ export function ChatInput({ onSendMessage, isLoading, isReady = true }: ChatInpu
           />
           {input.trim() && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-white/30 bg-[#0A0A0A] rounded-md border border-white/10">⌘ ↵</kbd>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-medium text-[#F6DF79]/40 bg-[#F6DF79]/5 rounded-md border border-[#F6DF79]/10">⌘ ↵</kbd>
             </div>
           )}
         </div>
@@ -55,7 +55,7 @@ export function ChatInput({ onSendMessage, isLoading, isReady = true }: ChatInpu
             type="submit" 
             disabled={!isReady || isLoading || !input.trim()}
             className={cn(
-              "bg-white/10 hover:bg-white/15 text-white/90 font-medium shadow-sm rounded-lg px-3.5 py-3 transition-all duration-200",
+              "bg-[#F6DF79] hover:bg-[#F6DF79]/90 text-black font-medium rounded-lg px-3.5 py-3 transition-all duration-200",
               (!isReady || isLoading) && "opacity-50 cursor-not-allowed"
             )}
           >

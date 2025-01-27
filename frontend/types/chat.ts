@@ -1,6 +1,28 @@
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
+  type?: 'tool' | 'intermediate' | 'final' | 'AIMessageChunk' | string;
+  event?: string;
+  additional_kwargs?: {
+    tool_calls?: Array<{
+      index: number;
+      id: string;
+      name: string;
+      args: Record<string, any>;
+    }>;
+    [key: string]: any;
+  };
+  response_metadata?: {
+    finish_reason?: 'stop' | 'tool_calls' | string;
+    model_name?: string;
+    system_fingerprint?: string;
+  };
+  metadata?: {
+    langgraph_node?: string;
+    langgraph_triggers?: string[];
+    langgraph_step?: number;
+    [key: string]: any;
+  };
 }
 
 export interface LangGraphMessage {

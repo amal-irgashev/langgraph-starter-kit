@@ -3,26 +3,64 @@
 import { createContext, useContext, ReactNode, useMemo } from 'react';
 import { Client } from '@langchain/langgraph-sdk';
 
-interface ClientContextType {
-  client: Client | null;
+// Types
+interface ClientConfig {
+  apiUrl: string;
+  apiKey?: string;
 }
 
-const ClientContext = createContext<ClientContextType>({ client: null });
+interface ClientContextValue {
+  client: Client | null;
+  isInitialized: boolean;
+  error: Error | null;
+}
 
 interface ClientProviderProps {
   children: ReactNode;
-  config: {
-    apiUrl: string;
-    apiKey?: string;
-  };
+  config: ClientConfig;
 }
 
+// Initial context value
+const initialContextValue: ClientContextValue = {
+  client: null,
+  isInitialized: false,
+  error: null,
+};
+
+// Create context with initial value
+const ClientContext = createContext<ClientContextValue>(initialContextValue);
+
+// Utility function to create client
+const createClient = (config: ClientConfig): Client => {
+  try {
+    return new Client(config);
+  } catch (error) {
+    console.error('Failed to initialize client:', error);
+    throw error;
+  }
+};
+
 export function ClientProvider({ children, config }: ClientProviderProps) {
-  // Memoize the client instance to prevent unnecessary re-renders
-  const client = useMemo(() => new Client(config), [config]);
+  // Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => {
+    try {
+      const client = createClient(config);
+      return {
+        client,
+        isInitialized: true,
+        error: null,
+      };
+    } catch (error) {
+      return {
+        client: null,
+        isInitialized: false,
+        error: error instanceof Error ? error : new Error('Failed to initialize client'),
+      };
+    }
+  }, [config]);
 
   return (
-    <ClientContext.Provider value={{ client }}>
+    <ClientContext.Provider value={value}>
       {children}
     </ClientContext.Provider>
   );
@@ -33,5 +71,14 @@ export function useClient() {
   if (!context) {
     throw new Error('useClient must be used within a ClientProvider');
   }
+
+  if (context.error) {
+    throw context.error;
+  }
+
+  if (!context.isInitialized) {
+    throw new Error('Client is not initialized');
+  }
+
   return context.client;
 }

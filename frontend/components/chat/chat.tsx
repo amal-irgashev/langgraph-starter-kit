@@ -13,11 +13,77 @@ import { Menu, X, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Animation configuration
 const springTransition = {
   type: "spring",
   stiffness: 300,
   damping: 30
 };
+
+// Header component for better organization
+const ChatHeader = ({ 
+  isSidebarOpen, 
+  setIsSidebarOpen, 
+  isDebugOpen, 
+  setIsDebugOpen,
+  threadInfo,
+  ready 
+}: {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (open: boolean) => void;
+  isDebugOpen: boolean;
+  setIsDebugOpen: (open: boolean) => void;
+  threadInfo: { title: string; timestamp: string };
+  ready: boolean;
+}) => (
+  <div className="flex-none h-14 bg-[#0F0F0F]/95 backdrop-blur-lg border-b border-white/5 z-10">
+    <div className="h-full flex items-center justify-between px-4">
+      <div className="flex items-center gap-3">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className={cn(
+            "w-8 h-8 flex items-center justify-center rounded-lg transition-colors",
+            isSidebarOpen 
+              ? "bg-[#F6DF79]/10 text-[#F6DF79]" 
+              : "bg-white/5 text-white/70 hover:bg-white/10"
+          )}
+        >
+          {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </motion.button>
+        <div className="flex items-center gap-2">
+          <div className={cn(
+            "w-2 h-2 rounded-full",
+            ready ? "bg-[#F6DF79]" : "bg-white/20"
+          )} />
+          <div className="text-sm font-medium text-white/90">
+            {threadInfo.title}
+          </div>
+          <div className="text-xs text-white/50">
+            {threadInfo.timestamp}
+          </div>
+        </div>
+      </div>
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setIsDebugOpen(!isDebugOpen)}
+        className={cn(
+          "flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors",
+          isDebugOpen 
+            ? "bg-[#F6DF79]/10 text-[#F6DF79]" 
+            : "text-white/70 hover:bg-white/5"
+        )}
+      >
+        <Bug className="w-4 h-4" />
+        <span className="text-xs font-medium hidden sm:inline">
+          {isDebugOpen ? 'Hide Debug' : 'Show Debug'}
+        </span>
+      </motion.button>
+    </div>
+  </div>
+);
 
 export function Chat() {
   const { messages, isLoading: chatLoading, rawMessages } = useChat();
@@ -25,7 +91,15 @@ export function Chat() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
 
-  // Initialize chat actions with current thread
+  // Filter out tool messages
+  const filteredMessages = messages.filter(message => {
+    // Filter out tool messages with JSON array responses
+    return !(
+      message.event === 'messages' ||
+      (message.content && message.content.startsWith('[{') && message.content.endsWith('}]'))
+    );
+  });
+
   const { sendMessage, ready } = useChatActions({
     threadId: currentThreadId || undefined,
   });
@@ -48,21 +122,28 @@ export function Chat() {
     }
   };
 
-  // Load thread history when currentThreadId changes
   useEffect(() => {
     if (currentThreadId) {
       loadThreadHistory(currentThreadId).catch(console.error);
     }
   }, [currentThreadId, loadThreadHistory]);
 
+  const currentThread = threads.find(t => t.thread_id === currentThreadId);
+  const threadInfo = {
+    title: currentThread?.messages[0]?.content?.slice(0, 50) || 'New Chat',
+    timestamp: currentThread ? new Date(currentThread.created_at).toLocaleString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit'
+    }) : ''
+  };
+
   return (
-    <div className="flex h-screen bg-[#0A0A0A] relative overflow-hidden">
-      {/* Backdrop for mobile sidebar */}
+    <div className="flex h-screen bg-[#0F0F0F] relative overflow-hidden">
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 0.3 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black md:hidden z-20"
             onClick={() => setIsSidebarOpen(false)}
@@ -70,7 +151,6 @@ export function Chat() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.div
         initial={false}
         animate={{
@@ -78,7 +158,7 @@ export function Chat() {
           x: isSidebarOpen ? 0 : -320
         }}
         transition={springTransition}
-        className="fixed md:relative h-full z-30 overflow-hidden shadow-2xl"
+        className="fixed md:relative h-full z-30 overflow-hidden"
       >
         <ChatThread
           threads={threads}
@@ -88,63 +168,17 @@ export function Chat() {
         />
       </motion.div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 h-screen relative">
-        {/* Header */}
-        <div className="flex-none h-14 bg-gradient-to-b from-[#0A0A0A] to-transparent z-10">
-          <div className="max-w-screen-2xl mx-auto px-4 h-full flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 hover:bg-[#161616] rounded-xl transition-all duration-200 ease-in-out ring-1 ring-amber-500/10"
-              >
-                <motion.div
-                  animate={{ rotate: isSidebarOpen ? 0 : 180 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isSidebarOpen ? 
-                    <X className="w-5 h-5 text-amber-400" /> : 
-                    <Menu className="w-5 h-5 text-amber-400" />
-                  }
-                </motion.div>
-              </motion.button>
-              <div className="text-amber-200/70 font-medium text-sm">
-                {currentThreadId ? 
-                  new Date(threads.find(t => t.thread_id === currentThreadId)?.created_at || '').toLocaleString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }) : 
-                  'New Chat'
-                }
-              </div>
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsDebugOpen(!isDebugOpen)}
-              className={cn(
-                "px-3 py-1.5 text-sm rounded-xl transition-all duration-200 flex items-center gap-2 ring-1",
-                isDebugOpen 
-                  ? "text-amber-400 bg-amber-500/10 ring-amber-500/20 hover:bg-amber-500/20" 
-                  : "text-gray-400 hover:bg-[#161616] ring-amber-500/10"
-              )}
-            >
-              <Bug className="w-4 h-4" />
-              <span className="hidden sm:inline">{isDebugOpen ? 'Hide Debug' : 'Show Debug'}</span>
-            </motion.button>
-          </div>
-        </div>
+        <ChatHeader
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          isDebugOpen={isDebugOpen}
+          setIsDebugOpen={setIsDebugOpen}
+          threadInfo={threadInfo}
+          ready={ready}
+        />
 
-        {/* Chat and Debug Panel Container */}
-        <motion.div 
-          className="flex-1 overflow-hidden flex"
-          layout
-        >
-          {/* Chat Window */}
+        <motion.div className="flex-1 overflow-hidden flex" layout>
           <motion.div
             layout
             className="flex-1 overflow-hidden p-4"
@@ -154,14 +188,13 @@ export function Chat() {
             transition={springTransition}
           >
             <ChatWindow
-              messages={messages}
+              messages={filteredMessages}
               isLoading={chatLoading}
               onSendMessage={sendMessage}
               isReady={ready}
             />
           </motion.div>
 
-          {/* Debug Panel */}
           <motion.div
             layout
             initial={{ width: 0 }}
@@ -169,7 +202,7 @@ export function Chat() {
               width: isDebugOpen ? '50%' : 0
             }}
             transition={springTransition}
-            className="overflow-hidden bg-[#0A0A0A] border-l border-[#262626]/10"
+            className="overflow-hidden"
           >
             {isDebugOpen && (
               <div className="h-full p-4">

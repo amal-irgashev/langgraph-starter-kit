@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useThread } from '@/contexts/ThreadContext';
@@ -22,6 +22,89 @@ interface ChatThreadProps {
   onSelectThread: (threadId: string) => void;
   activeThreadId?: string;
 }
+
+// Utility functions
+const getThreadTitle = (thread: Thread) => thread.messages[0]?.content?.slice(0, 50) || 'New Chat';
+const getThreadTime = (thread: Thread) => new Date(thread.created_at).toLocaleString(undefined, {
+  hour: '2-digit',
+  minute: '2-digit'
+});
+
+// Thread item component
+const ThreadItem = ({ 
+  thread, 
+  isActive, 
+  onSelect, 
+  onDelete 
+}: { 
+  thread: Thread; 
+  isActive: boolean; 
+  onSelect: () => void; 
+  onDelete: (e: React.MouseEvent) => void; 
+}) => (
+  <div className="group relative animate-in slide-in-from-left-5 duration-200">
+    <button
+      onClick={onSelect}
+      className={cn(
+        "w-full p-3 text-left rounded-lg transition-all flex items-start gap-3",
+        "hover:bg-white/5",
+        isActive ? "bg-[#F6DF79]/5 hover:bg-[#F6DF79]/5" : ""
+      )}
+    >
+      <div className={cn(
+        "w-8 h-8 rounded-lg flex items-center justify-center",
+        isActive 
+          ? "bg-[#F6DF79]/10 text-[#F6DF79]" 
+          : "bg-white/5 text-white/70 group-hover:bg-white/10"
+      )}>
+        <MessageSquare className="w-4 h-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={cn(
+          "text-sm font-medium truncate",
+          isActive ? "text-[#F6DF79]" : "text-white/90"
+        )}>
+          {getThreadTitle(thread)}
+        </p>
+        <p className="text-xs text-white/50">
+          {getThreadTime(thread)}
+        </p>
+      </div>
+    </button>
+    <button
+      onClick={onDelete}
+      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
+    >
+      <Trash2 className="w-4 h-4 text-white/40 hover:text-white/80 transition-colors" />
+    </button>
+  </div>
+);
+
+// Empty state component
+const EmptyState = () => (
+  <div className="h-[300px] flex flex-col items-center justify-center text-center p-4">
+    <div className="w-14 h-14 rounded-xl bg-[#F6DF79]/10 flex items-center justify-center mb-4">
+      <MessageSquare className="w-7 h-7 text-[#F6DF79]" />
+    </div>
+    <p className="text-sm font-medium text-white/80">No chats yet</p>
+    <p className="text-xs text-white/40 mt-1">Start a new conversation to begin</p>
+  </div>
+);
+
+// Header component
+const Header = () => (
+  <div className="h-14 flex items-center px-4 border-b border-white/5">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 flex items-center justify-center">
+        <Bot className="w-4 h-4 text-[#F6DF79]" />
+      </div>
+      <div>
+        <h1 className="text-sm font-medium text-white/90">AI Assistant</h1>
+        <p className="text-[10px] text-white/40">Powered by Claude</p>
+      </div>
+    </div>
+  </div>
+);
 
 export function ChatThread({ threads, onNewChat, onSelectThread, activeThreadId }: ChatThreadProps) {
   const { deleteThread, deleteAllThreads } = useThread();
@@ -54,17 +137,11 @@ export function ChatThread({ threads, onNewChat, onSelectThread, activeThreadId 
     return acc;
   }, {} as Record<string, Thread[]>);
 
-  const categories = [
-    { id: 'today', label: 'Today' },
-    { id: 'yesterday', label: 'Yesterday' },
-    { id: 'previous', label: 'Previous 7 Days' },
-  ];
-
   const handleNewChat = async () => {
     if (!client || isCreating) return;
     setIsCreating(true);
     try {
-      onNewChat();
+      await onNewChat();
     } finally {
       setIsCreating(false);
     }
@@ -89,12 +166,20 @@ export function ChatThread({ threads, onNewChat, onSelectThread, activeThreadId 
     }
   };
 
+  const categories = [
+    { id: 'today', label: 'Today' },
+    { id: 'yesterday', label: 'Yesterday' },
+    { id: 'previous', label: 'Previous 7 Days' },
+  ];
+
   return (
     <div className="flex flex-col h-full bg-[#0F0F0F]">
+      <Header />
+
       <div className="p-4 border-b border-white/5">
         <Button 
           onClick={handleNewChat}
-          className="w-full bg-white/10 hover:bg-white/15 text-white/90 rounded-lg py-2.5 transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full bg-[#F6DF79] hover:bg-[#F6DF79]/90 text-black rounded-lg py-2.5 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
           disabled={isCreating}
         >
           <Plus className="w-4 h-4" />
@@ -121,58 +206,20 @@ export function ChatThread({ threads, onNewChat, onSelectThread, activeThreadId 
               <>
                 <div className="text-xs font-medium text-white/60 px-3 pb-2">{category.label}</div>
                 {groupedThreads[category.id].map((thread) => (
-                  <div
+                  <ThreadItem
                     key={thread.thread_id}
-                    className="group relative animate-in slide-in-from-left-5 duration-200"
-                  >
-                    <button
-                      onClick={() => onSelectThread(thread.thread_id)}
-                      className={cn(
-                        "w-full p-3 text-left rounded-lg transition-all flex items-start gap-3",
-                        "hover:bg-white/5",
-                        activeThreadId === thread.thread_id ? "bg-white/5" : ""
-                      )}
-                    >
-                      <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center",
-                        "bg-white/5 group-hover:bg-white/10 transition-colors"
-                      )}>
-                        <MessageSquare className="w-4 h-4 text-white/70" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate text-white/90">
-                          {thread.messages[0]?.content?.slice(0, 50) || 'New Chat'}
-                        </p>
-                        <p className="text-xs text-white/50">
-                          {new Date(thread.created_at).toLocaleString(undefined, {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteThread(e, thread.thread_id)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-2 hover:bg-white/10 rounded-lg transition-all duration-200"
-                    >
-                      <Trash2 className="w-4 h-4 text-white/40 hover:text-white/80 transition-colors" />
-                    </button>
-                  </div>
+                    thread={thread}
+                    isActive={activeThreadId === thread.thread_id}
+                    onSelect={() => onSelectThread(thread.thread_id)}
+                    onDelete={(e) => handleDeleteThread(e, thread.thread_id)}
+                  />
                 ))}
               </>
             )}
           </div>
         ))}
 
-        {threads.length === 0 && (
-          <div className="h-[300px] flex flex-col items-center justify-center text-center p-4">
-            <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mb-4">
-              <MessageSquare className="w-7 h-7 text-white/60" />
-            </div>
-            <p className="text-sm font-medium text-white/80">No chats yet</p>
-            <p className="text-xs text-white/40 mt-1">Start a new conversation to begin</p>
-          </div>
-        )}
+        {threads.length === 0 && <EmptyState />}
       </div>
     </div>
   );
