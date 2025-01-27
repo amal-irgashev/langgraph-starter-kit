@@ -1,4 +1,4 @@
-(globalThis.TURBOPACK = globalThis.TURBOPACK || []).push(["static/chunks/_f14a32._.js", {
+(globalThis.TURBOPACK = globalThis.TURBOPACK || []).push(["static/chunks/_8523f8._.js", {
 
 "[project]/contexts/ClientContext.tsx [app-client] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
@@ -90,121 +90,119 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
     __turbopack_refresh__.registerExports(module, globalThis.$RefreshHelpers$);
 }
 }}),
-"[project]/contexts/ChatContext.tsx [app-client] (ecmascript)": ((__turbopack_context__) => {
+"[project]/types/chat-context.ts [app-client] (ecmascript)": ((__turbopack_context__) => {
 "use strict";
 
 var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_import__, s: __turbopack_esm__, v: __turbopack_export_value__, n: __turbopack_export_namespace__, c: __turbopack_cache__, M: __turbopack_modules__, l: __turbopack_load__, j: __turbopack_dynamic__, P: __turbopack_resolve_absolute_path__, U: __turbopack_relative_url__, R: __turbopack_resolve_module_id_path__, b: __turbopack_worker_blob_url__, g: global, __dirname, k: __turbopack_refresh__, m: module, z: __turbopack_require_stub__ } = __turbopack_context__;
 {
 __turbopack_esm__({
-    "ChatProvider": (()=>ChatProvider),
-    "useChat": (()=>useChat)
+    "initialChatState": (()=>initialChatState)
 });
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
-;
-var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signature(), _s2 = __turbopack_refresh__.signature();
-'use client';
-;
-const initialState = {
+const initialChatState = {
     messages: [],
     rawMessages: [],
     isLoading: false,
     streamingContent: ''
 };
-// Create context with undefined default to ensure proper provider usage
-const ChatContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
-/**
- * Custom hook that manages chat actions and state updates
- */ function useChatActions(setState) {
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_refresh__.registerExports(module, globalThis.$RefreshHelpers$);
+}
+}}),
+"[project]/hooks/useChatStateActions.ts [app-client] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_import__, s: __turbopack_esm__, v: __turbopack_export_value__, n: __turbopack_export_namespace__, c: __turbopack_cache__, M: __turbopack_modules__, l: __turbopack_load__, j: __turbopack_dynamic__, P: __turbopack_resolve_absolute_path__, U: __turbopack_relative_url__, R: __turbopack_resolve_module_id_path__, b: __turbopack_worker_blob_url__, g: global, __dirname, k: __turbopack_refresh__, m: module, z: __turbopack_require_stub__ } = __turbopack_context__;
+{
+__turbopack_esm__({
+    "useChatStateActions": (()=>useChatStateActions)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var _s = __turbopack_refresh__.signature();
+;
+function useChatStateActions(setState) {
     _s();
-    const addMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[addMessage]": ()=>({
-                "useChatActions.useMemo[addMessage]": (message)=>{
-                    setState({
-                        "useChatActions.useMemo[addMessage]": (prev)=>({
-                                ...prev,
-                                messages: [
-                                    ...prev.messages,
-                                    message
-                                ]
-                            })
-                    }["useChatActions.useMemo[addMessage]"]);
-                }
-            })["useChatActions.useMemo[addMessage]"]
-    }["useChatActions.useMemo[addMessage]"], [
+    // Add a new processed message to the chat
+    const addMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[addMessage]": (message)=>{
+            setState({
+                "useChatStateActions.useCallback[addMessage]": (prev)=>({
+                        ...prev,
+                        messages: [
+                            ...prev.messages,
+                            message
+                        ]
+                    })
+            }["useChatStateActions.useCallback[addMessage]"]);
+        }
+    }["useChatStateActions.useCallback[addMessage]"], [
         setState
     ]);
-    const addRawMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[addRawMessage]": ()=>({
-                "useChatActions.useMemo[addRawMessage]": (message)=>{
-                    setState({
-                        "useChatActions.useMemo[addRawMessage]": (prev)=>({
-                                ...prev,
-                                rawMessages: [
-                                    ...prev.rawMessages,
-                                    message
-                                ]
-                            })
-                    }["useChatActions.useMemo[addRawMessage]"]);
-                }
-            })["useChatActions.useMemo[addRawMessage]"]
-    }["useChatActions.useMemo[addRawMessage]"], [
+    // Add a new raw message to the chat
+    const addRawMessage = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[addRawMessage]": (message)=>{
+            setState({
+                "useChatStateActions.useCallback[addRawMessage]": (prev)=>({
+                        ...prev,
+                        rawMessages: [
+                            ...prev.rawMessages,
+                            message
+                        ]
+                    })
+            }["useChatStateActions.useCallback[addRawMessage]"]);
+        }
+    }["useChatStateActions.useCallback[addRawMessage]"], [
         setState
     ]);
-    const setIsLoading = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[setIsLoading]": ()=>({
-                "useChatActions.useMemo[setIsLoading]": (loading)=>{
-                    setState({
-                        "useChatActions.useMemo[setIsLoading]": (prev)=>({
-                                ...prev,
-                                isLoading: loading
-                            })
-                    }["useChatActions.useMemo[setIsLoading]"]);
-                }
-            })["useChatActions.useMemo[setIsLoading]"]
-    }["useChatActions.useMemo[setIsLoading]"], [
+    // Update loading state for async operations
+    const setIsLoading = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[setIsLoading]": (loading)=>{
+            setState({
+                "useChatStateActions.useCallback[setIsLoading]": (prev)=>({
+                        ...prev,
+                        isLoading: loading
+                    })
+            }["useChatStateActions.useCallback[setIsLoading]"]);
+        }
+    }["useChatStateActions.useCallback[setIsLoading]"], [
         setState
     ]);
-    const setStreamingContent = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[setStreamingContent]": ()=>({
-                "useChatActions.useMemo[setStreamingContent]": (content)=>{
-                    setState({
-                        "useChatActions.useMemo[setStreamingContent]": (prev)=>({
-                                ...prev,
-                                streamingContent: content
-                            })
-                    }["useChatActions.useMemo[setStreamingContent]"]);
-                }
-            })["useChatActions.useMemo[setStreamingContent]"]
-    }["useChatActions.useMemo[setStreamingContent]"], [
+    // Update streaming content during real-time message delivery
+    const setStreamingContent = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[setStreamingContent]": (content)=>{
+            setState({
+                "useChatStateActions.useCallback[setStreamingContent]": (prev)=>({
+                        ...prev,
+                        streamingContent: content
+                    })
+            }["useChatStateActions.useCallback[setStreamingContent]"]);
+        }
+    }["useChatStateActions.useCallback[setStreamingContent]"], [
         setState
     ]);
-    const clearRawMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[clearRawMessages]": ()=>({
-                "useChatActions.useMemo[clearRawMessages]": ()=>{
-                    setState({
-                        "useChatActions.useMemo[clearRawMessages]": (prev)=>({
-                                ...prev,
-                                rawMessages: []
-                            })
-                    }["useChatActions.useMemo[clearRawMessages]"]);
-                }
-            })["useChatActions.useMemo[clearRawMessages]"]
-    }["useChatActions.useMemo[clearRawMessages]"], [
+    // Clear all raw messages from state
+    const clearRawMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[clearRawMessages]": ()=>{
+            setState({
+                "useChatStateActions.useCallback[clearRawMessages]": (prev)=>({
+                        ...prev,
+                        rawMessages: []
+                    })
+            }["useChatStateActions.useCallback[clearRawMessages]"]);
+        }
+    }["useChatStateActions.useCallback[clearRawMessages]"], [
         setState
     ]);
-    const setMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "useChatActions.useMemo[setMessages]": ()=>({
-                "useChatActions.useMemo[setMessages]": (messages)=>{
-                    setState({
-                        "useChatActions.useMemo[setMessages]": (prev)=>({
-                                ...prev,
-                                messages
-                            })
-                    }["useChatActions.useMemo[setMessages]"]);
-                }
-            })["useChatActions.useMemo[setMessages]"]
-    }["useChatActions.useMemo[setMessages]"], [
+    // Replace all messages with a new array
+    const setMessages = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"])({
+        "useChatStateActions.useCallback[setMessages]": (messages)=>{
+            setState({
+                "useChatStateActions.useCallback[setMessages]": (prev)=>({
+                        ...prev,
+                        messages
+                    })
+            }["useChatStateActions.useCallback[setMessages]"]);
+        }
+    }["useChatStateActions.useCallback[setMessages]"], [
         setState
     ]);
     return {
@@ -216,11 +214,36 @@ const ChatContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project
         setMessages
     };
 }
-_s(useChatActions, "DWRRK261MemHY4RSnLUuoxHb0FA=");
+_s(useChatStateActions, "qeUFqCFUyYDTC1edLlIcWIlSeNY=");
+if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
+    __turbopack_refresh__.registerExports(module, globalThis.$RefreshHelpers$);
+}
+}}),
+"[project]/contexts/ChatContext.tsx [app-client] (ecmascript)": ((__turbopack_context__) => {
+"use strict";
+
+var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_import__, s: __turbopack_esm__, v: __turbopack_export_value__, n: __turbopack_export_namespace__, c: __turbopack_cache__, M: __turbopack_modules__, l: __turbopack_load__, j: __turbopack_dynamic__, P: __turbopack_resolve_absolute_path__, U: __turbopack_relative_url__, R: __turbopack_resolve_module_id_path__, b: __turbopack_worker_blob_url__, g: global, __dirname, k: __turbopack_refresh__, m: module, z: __turbopack_require_stub__ } = __turbopack_context__;
+{
+__turbopack_esm__({
+    "ChatProvider": (()=>ChatProvider),
+    "useChat": (()=>useChat)
+});
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$types$2f$chat$2d$context$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/types/chat-context.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$useChatStateActions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_import__("[project]/hooks/useChatStateActions.ts [app-client] (ecmascript)");
+;
+var _s = __turbopack_refresh__.signature(), _s1 = __turbopack_refresh__.signature();
+'use client';
+;
+;
+;
+// Create context with undefined default to ensure proper provider usage
+const ChatContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createContext"])(undefined);
 function ChatProvider({ children }) {
-    _s1();
-    const [state, setState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(initialState);
-    const actions = useChatActions(setState);
+    _s();
+    const [state, setState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(__TURBOPACK__imported__module__$5b$project$5d2f$types$2f$chat$2d$context$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["initialChatState"]);
+    const actions = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$useChatStateActions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChatStateActions"])(setState);
     const value = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "ChatProvider.useMemo[value]": ()=>({
                 ...state,
@@ -235,25 +258,25 @@ function ChatProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ChatContext.tsx",
-        lineNumber: 91,
+        lineNumber: 22,
         columnNumber: 10
     }, this);
 }
-_s1(ChatProvider, "lEqJ0wZtbE8ZtXsVUnMlWb3c7Vs=", false, function() {
+_s(ChatProvider, "plVSkHDiHwASp/2EW2avqYobBQI=", false, function() {
     return [
-        useChatActions
+        __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$useChatStateActions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChatStateActions"]
     ];
 });
 _c = ChatProvider;
 function useChat() {
-    _s2();
+    _s1();
     const context = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useContext"])(ChatContext);
     if (context === undefined) {
         throw new Error('useChat must be used within a ChatProvider');
     }
     return context;
 }
-_s2(useChat, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
+_s1(useChat, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
 var _c;
 __turbopack_refresh__.register(_c, "ChatProvider");
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -522,4 +545,4 @@ var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_
 }}),
 }]);
 
-//# sourceMappingURL=_f14a32._.js.map
+//# sourceMappingURL=_8523f8._.js.map

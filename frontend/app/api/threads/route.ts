@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { getLangGraphApiUrl, createErrorResponse } from '../utils';
 
 // GET /api/threads - Get all threads
 export async function GET() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_LANGGRAPH_API_URL;
-    if (!apiUrl) {
-      throw new Error('LangGraph API URL is not configured');
-    }
-
+    const apiUrl = getLangGraphApiUrl();
     const response = await fetch(`${apiUrl}/threads`, {
       method: 'GET',
       headers: {
@@ -23,26 +20,16 @@ export async function GET() {
     const data = await response.json();
     return NextResponse.json({ threads: data });
   } catch (error) {
-    console.error('Error fetching threads:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch threads', threads: [] },
-      { status: 500 }
-    );
+    return createErrorResponse(error, 'THREAD_FETCH_FAILED');
   }
 }
 
 // POST /api/threads - Create a new thread
 export async function POST() {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_LANGGRAPH_API_URL;
-    if (!apiUrl) {
-      throw new Error('LangGraph API URL is not configured');
-    }
-
-    // Generate a new thread ID
+    const apiUrl = getLangGraphApiUrl();
     const thread_id = uuidv4();
     
-    // Create initial configuration for the thread with LangGraph options
     const config = {
       graph_id: "react_agent",
       configurable: {
@@ -66,7 +53,6 @@ export async function POST() {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Error from LangGraph:', error);
       throw new Error(`Failed to create thread: ${error}`);
     }
 
@@ -75,13 +61,6 @@ export async function POST() {
       config: config.configurable 
     });
   } catch (error) {
-    console.error('Error creating thread:', error);
-    return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : 'Failed to create thread',
-        code: 'THREAD_CREATION_FAILED'
-      },
-      { status: 500 }
-    );
+    return createErrorResponse(error, 'THREAD_CREATION_FAILED');
   }
 } 
