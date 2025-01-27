@@ -1,14 +1,5 @@
-# LangGraph Starter Kit
-
 <div align="center">
-
-<img src="https://python.langchain.com/assets/images/langgraph-7903264087b881d3.svg" width="180" alt="LangGraph Logo">
-
-<br/>
-
-<img src="Starter-kit-photo.png" width="900" alt="LangGraph Starter Kit UI - Modern chat interface with real-time debug panel"/>
-
-<br/>
+<h1 align="center"> LangGraph + Next JS Starter Kit</h1>
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg?style=flat&logo=next.js&logoColor=white)](https://nextjs.org)
@@ -19,6 +10,10 @@
 
 [Documentation](https://python.langchain.com/docs/langgraph) | [LangGraph Client SDK](frontend/LangGraph%20Client%20JS%20SDK%20Draft.md) | [Examples](https://python.langchain.com/docs/langgraph/examples)
 
+</div>
+
+<div style="padding: 20px; border-radius: 8px; text-align: center;">
+  <img src=".github/assets/starter-kit-photo.png" width="900" style="border-radius: 8px;" alt="LangGraph Starter Kit UI - Modern chat interface with real-time debug panel"/>
 </div>
 
 ## 🎯 Overview
