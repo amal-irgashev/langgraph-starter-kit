@@ -435,22 +435,24 @@ function ThreadProvider({ children }) {
     }["ThreadProvider.useCallback[deleteAllThreads]"], [
         client
     ]);
+    const value = {
+        threads,
+        currentThreadId,
+        isLoading,
+        loadThreads,
+        createNewThread,
+        loadThreadHistory,
+        deleteThread,
+        deleteAllThreads,
+        setCurrentThreadId,
+        setThreads
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(ThreadContext.Provider, {
-        value: {
-            threads,
-            currentThreadId,
-            isLoading,
-            loadThreads,
-            createNewThread,
-            loadThreadHistory,
-            deleteThread,
-            deleteAllThreads,
-            setCurrentThreadId
-        },
+        value: value,
         children: children
     }, void 0, false, {
         fileName: "[project]/contexts/ThreadContext.tsx",
-        lineNumber: 172,
+        lineNumber: 186,
         columnNumber: 5
     }, this);
 }

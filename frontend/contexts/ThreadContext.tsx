@@ -21,6 +21,7 @@ interface ThreadContextType {
   deleteThread: (threadId: string) => Promise<void>;
   deleteAllThreads: () => Promise<void>;
   setCurrentThreadId: (threadId: string | null) => void;
+  setThreads: (threads: Thread[]) => void;
 }
 
 const ThreadContext = React.createContext<ThreadContextType | null>(null);
@@ -168,18 +169,21 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
     }
   }, [client]);
 
+  const value = {
+    threads,
+    currentThreadId,
+    isLoading,
+    loadThreads,
+    createNewThread,
+    loadThreadHistory,
+    deleteThread,
+    deleteAllThreads,
+    setCurrentThreadId,
+    setThreads
+  };
+
   return (
-    <ThreadContext.Provider value={{
-      threads,
-      currentThreadId,
-      isLoading,
-      loadThreads,
-      createNewThread,
-      loadThreadHistory,
-      deleteThread,
-      deleteAllThreads,
-      setCurrentThreadId
-    }}>
+    <ThreadContext.Provider value={value}>
       {children}
     </ThreadContext.Provider>
   );

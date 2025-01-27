@@ -12,6 +12,8 @@ import { DebugPanel } from './debug-panel';
 import { Menu, X, Bug } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useClient } from '@/contexts/ClientContext';
+import { Thread } from '@/types/chat';
 
 // Animation configuration
 const springTransition = {
@@ -87,9 +89,34 @@ const ChatHeader = ({
 
 export function Chat() {
   const { messages, isLoading: chatLoading, rawMessages } = useChat();
-  const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId } = useThread();
+  const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId, setThreads } = useThread();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const client = useClient();
+
+  // Fetch all threads when component mounts
+  useEffect(() => {
+    const fetchThreads = async () => {
+      if (!client) return;
+      
+      try {
+        const allThreads = await client.threads.search();
+        setThreads(allThreads.map(thread => ({
+          thread_id: thread.thread_id,
+          created_at: thread.created_at || new Date().toISOString(),
+          title: '',
+          lastMessage: '',
+          timestamp: thread.created_at || new Date().toISOString(),
+          metadata: thread.metadata,
+          messages: [] // Initialize with empty messages array
+        })));
+      } catch (error) {
+        console.error('Error fetching threads:', error);
+      }
+    };
+
+    fetchThreads();
+  }, [client, setThreads]);
 
   // Filter out tool messages
   const filteredMessages = messages.filter(message => {
