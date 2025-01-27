@@ -3,14 +3,10 @@ import { getLangGraphApiUrl, createErrorResponse, validateRequestBody } from '..
 
 export const runtime = 'edge';
 
-// Store active connections
-const connections = new Map<string, ReadableStreamController<any>>();
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Create a new transform stream
     const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
 
     return new Response(stream.readable, {
       headers: {
@@ -41,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     validateRequestBody(body, ['threadId', 'message']);
-    const { threadId, message } = body;
+    const { threadId, message } = body as { threadId: string; message: string };
 
     const apiUrl = getLangGraphApiUrl();
     const url = new URL(`${apiUrl}/runs/stream`);

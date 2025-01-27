@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// GET /api/threads/[threadId] - Get a specific thread
+// GET /api/threads/[threadId] - Get thread by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
-  if (!params.threadId) {
+  const { threadId } = await params;
+  if (!threadId) {
     return NextResponse.json(
       { error: 'Thread ID is required' },
       { status: 400 }
@@ -19,7 +20,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${apiUrl}/threads/${params.threadId}`,
+      `${apiUrl}/threads/${threadId}`,
       {
         method: 'GET',
         headers: {
@@ -47,12 +48,13 @@ export async function GET(
   }
 }
 
-// DELETE /api/threads/[threadId] - Delete a thread
+// DELETE /api/threads/[threadId] - Delete thread by ID
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
-  if (!params.threadId) {
+  const { threadId } = await params;
+  if (!threadId) {
     return NextResponse.json(
       { error: 'Thread ID is required' },
       { status: 400 }
@@ -66,7 +68,7 @@ export async function DELETE(
     }
 
     const response = await fetch(
-      `${apiUrl}/threads/${params.threadId}`,
+      `${apiUrl}/threads/${threadId}`,
       {
         method: 'DELETE',
         headers: {
@@ -80,7 +82,7 @@ export async function DELETE(
       throw new Error(error.message || 'Failed to delete thread');
     }
 
-    return NextResponse.json({ success: true });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error('Error deleting thread:', error);
     return NextResponse.json(

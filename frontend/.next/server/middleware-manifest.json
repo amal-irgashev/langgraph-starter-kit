@@ -1,6 +1,36 @@
 {
   "version": 3,
   "middleware": {},
-  "sortedMiddleware": [],
-  "functions": {}
+  "functions": {
+    "/api/stream/route": {
+      "files": [
+        "server/server-reference-manifest.js",
+        "server/app/api/stream/route_client-reference-manifest.js",
+        "server/middleware-build-manifest.js",
+        "server/middleware-react-loadable-manifest.js",
+        "server/next-font-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "server/edge-runtime-webpack.js",
+        "server/app/api/stream/route.js"
+      ],
+      "name": "app/api/stream/route",
+      "page": "/api/stream/route",
+      "matchers": [
+        {
+          "regexp": "^/api/stream$",
+          "originalSource": "/api/stream"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "3pjRQMGu_V4gHjCTZU5yJ",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "CltDzdqv1T5sOaklt4+7PeKNPZlYitImHa8Yrdnyaas=",
+        "__NEXT_PREVIEW_MODE_ID": "0c42ac2bcd7e61bfe2abf24c222d4c5c",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "c13406bb107672a981da85612b6fa846372e20a7b3d7ff24ba08f1f9def04c0f",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "b207a421a2d2b14b377b56381af2b1d60525c702ad40782e86e9fa94014c5715"
+      }
+    }
+  },
+  "sortedMiddleware": []
 }

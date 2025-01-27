@@ -1,13 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, Loader2, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useRef, useEffect } from 'react';
+import { Loader2, MessageSquare } from 'lucide-react';
 import { Message } from '@/types/chat';
 import { useChat } from '@/contexts/ChatContext';
-import ReactMarkdown from 'react-markdown';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import { ChatInput } from './chat-input';
 import { MessageItem } from './message-item';
 
@@ -30,31 +26,23 @@ const EmptyState = () => (
 );
 
 // Loading indicator component
-const LoadingIndicator = () => {
-  const message: Message = {
-    role: 'assistant',
-    content: '...',
-    type: 'loading'
-  };
-  
-  return (
-    <div className="group">
-      <div className="flex items-start gap-3">
-        <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 text-[#F6DF79] flex items-center justify-center flex-shrink-0">
-          <Loader2 className="w-4 h-4 animate-spin" />
-        </div>
-        <div className="flex-1 space-y-1.5">
-          <div className="text-xs font-medium text-white/70">Assistant</div>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce" />
-            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-150" />
-            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-300" />
-          </div>
+const LoadingIndicator = () => (
+  <div className="group">
+    <div className="flex items-start gap-3">
+      <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 text-[#F6DF79] flex items-center justify-center flex-shrink-0">
+        <Loader2 className="w-4 h-4 animate-spin" />
+      </div>
+      <div className="flex-1 space-y-1.5">
+        <div className="text-xs font-medium text-white/70">Assistant</div>
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce" />
+          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-150" />
+          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-300" />
         </div>
       </div>
     </div>
-  );
-};
+  </div>
+);
 
 // Streaming message component
 const StreamingMessage = ({ content }: { content: string }) => {
@@ -75,7 +63,6 @@ const StreamingMessage = ({ content }: { content: string }) => {
 };
 
 export function ChatWindow({ messages, isLoading, onSendMessage, isReady = true }: ChatWindowProps) {
-  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { streamingContent } = useChat();
 
@@ -86,13 +73,6 @@ export function ChatWindow({ messages, isLoading, onSendMessage, isReady = true 
   useEffect(() => {
     scrollToBottom();
   }, [messages, streamingContent]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    onSendMessage(input);
-    setInput('');
-  };
 
   return (
     <div className="flex flex-col h-full bg-[#0F0F0F] rounded-xl overflow-hidden shadow-xl border border-white/5">

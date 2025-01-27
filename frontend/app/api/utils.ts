@@ -30,7 +30,7 @@ export function createErrorResponse(error: unknown, code: string, status = 500) 
 /**
  * Validates required fields in the request body
  */
-export function validateRequestBody(body: any, requiredFields: string[]) {
+export function validateRequestBody(body: Record<string, unknown>, requiredFields: string[]) {
   const missingFields = requiredFields.filter(field => !body[field]);
   if (missingFields.length > 0) {
     throw new Error(`Missing required fields: ${missingFields.join(', ')}`);

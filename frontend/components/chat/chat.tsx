@@ -10,11 +10,7 @@ import { useChatActions } from '@/hooks/useChatActions';
 import { ChatThread } from './chat-thread';
 import { ChatWindow } from './chat-window';
 import { DebugPanel } from './debug-panel';
-import { Menu, X, Bug } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useClient } from '@/contexts/ClientContext';
-import { Thread } from '@/types/chat';
 import { ChatHeader } from './chat-header';
 import { springTransition } from '@/lib/animations';
 
@@ -27,17 +23,15 @@ export function Chat() {
   const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId } = useThread();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
-  const client = useClient();
+  const { sendMessage } = useChatActions({
+    threadId: currentThreadId || undefined,
+  });
 
   // Filter out system/tool messages
   const filteredMessages = useMemo(() => messages.filter(message => 
     !(message.event === 'messages' || 
       (message.content && message.content.startsWith('[{') && message.content.endsWith('}]')))
   ), [messages]);
-
-  const { sendMessage, ready } = useChatActions({
-    threadId: currentThreadId || undefined,
-  });
 
   const handleNewChat = useCallback(async () => {
     try {
@@ -116,7 +110,7 @@ export function Chat() {
           isDebugOpen={isDebugOpen}
           setIsDebugOpen={setIsDebugOpen}
           threadInfo={threadInfo}
-          ready={ready}
+          ready={true}
         />
 
         <motion.div className="flex-1 overflow-hidden flex" layout>
@@ -130,7 +124,7 @@ export function Chat() {
               messages={filteredMessages}
               isLoading={chatLoading}
               onSendMessage={sendMessage}
-              isReady={ready}
+              isReady={true}
             />
           </motion.div>
 

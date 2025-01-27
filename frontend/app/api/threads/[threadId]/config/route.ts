@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/threads/[threadId]/config - Get thread configuration
 export async function GET(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
-  if (!params.threadId) {
+  const { threadId } = await params;
+  if (!threadId) {
     return NextResponse.json(
       { error: 'Thread ID is required' },
       { status: 400 }
@@ -19,7 +20,7 @@ export async function GET(
     }
 
     const response = await fetch(
-      `${apiUrl}/threads/${params.threadId}/config`,
+      `${apiUrl}/threads/${threadId}/config`,
       {
         method: 'GET',
         headers: {
@@ -50,9 +51,10 @@ export async function GET(
 // PATCH /api/threads/[threadId]/config - Update thread configuration
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
-  if (!params.threadId) {
+  const { threadId } = await params;
+  if (!threadId) {
     return NextResponse.json(
       { error: 'Thread ID is required' },
       { status: 400 }
@@ -68,7 +70,7 @@ export async function PATCH(
     const body = await request.json();
     
     const response = await fetch(
-      `${apiUrl}/threads/${params.threadId}/config`,
+      `${apiUrl}/threads/${threadId}/config`,
       {
         method: 'PATCH',
         headers: {

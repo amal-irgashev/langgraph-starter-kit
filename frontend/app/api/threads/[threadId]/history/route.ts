@@ -3,9 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // GET /api/threads/[threadId]/history - Get thread history
 export async function GET(
   request: NextRequest,
-  { params }: { params: { threadId: string } }
+  { params }: { params: Promise<{ threadId: string }> }
 ) {
-  if (!params.threadId) {
+  const { threadId } = await params;
+  if (!threadId) {
     return NextResponse.json(
       { error: 'Thread ID is required' },
       { status: 400 }
@@ -20,7 +21,7 @@ export async function GET(
 
     // Get thread history from LangGraph
     const response = await fetch(
-      `${apiUrl}/threads/${params.threadId}/messages`,
+      `${apiUrl}/threads/${threadId}/messages`,
       {
         method: 'GET',
         headers: {

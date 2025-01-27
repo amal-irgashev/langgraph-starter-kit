@@ -11,7 +11,6 @@ import { ChatThread } from './chat/chat-thread';
 import { ChatWindow } from './chat/chat-window';
 import { Menu, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Thread } from '@/types/chat';
 import { DebugPanel } from './chat/debug-panel';
 
 /**

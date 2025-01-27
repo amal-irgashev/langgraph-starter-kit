@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 55, "column": 0}, "map": {"version":3,"sources":["file:///Users/sherahmedov/Dev/Portfolio/langgraph-starter-kit/frontend/app/api/threads/%5BthreadId%5D/messages/route.ts"],"sourcesContent":["import { NextRequest, NextResponse } from 'next/server';\n\ninterface RouteParams {\n  params: {\n    threadId: string;\n  };\n}\n\nexport async function GET(req: NextRequest, { params }: RouteParams) {\n  try {\n    const { threadId } = params;\n    \n    // Forward the request to your Python backend\n    const response = await fetch(`http://localhost:8000/threads/${threadId}/messages`);\n    const messages = await response.json();\n    \n    return NextResponse.json(messages);\n  } catch (error) {\n    console.error('Error fetching thread messages:', error);\n    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });\n  }\n} "],"names":[],"mappings":";;;AAAA;;AAQO,eAAe,IAAI,GAAgB,EAAE,EAAE,MAAM,EAAe;IACjE,IAAI;QACF,MAAM,EAAE,QAAQ,EAAE,GAAG;QAErB,6CAA6C;QAC7C,MAAM,WAAW,MAAM,MAAM,CAAC,8BAA8B,EAAE,SAAS,SAAS,CAAC;QACjF,MAAM,WAAW,MAAM,SAAS,IAAI;QAEpC,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;IAC3B,EAAE,OAAO,OAAO;QACd,QAAQ,KAAK,CAAC,mCAAmC;QACjD,OAAO,gIAAA,CAAA,eAAY,CAAC,IAAI,CAAC;YAAE,OAAO;QAAwB,GAAG;YAAE,QAAQ;QAAI;IAC7E;AACF"}},
-    {"offset": {"line": 76, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"A"}}]
-}

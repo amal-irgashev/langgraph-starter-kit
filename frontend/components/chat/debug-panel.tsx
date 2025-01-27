@@ -17,13 +17,24 @@ interface Metadata {
   langgraph_node?: string;
   ls_model_name?: string;
   ls_temperature?: number;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
 }
 
 interface MessageData {
   type?: string;
   content?: string;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
+}
+
+interface StreamState {
+  content: string;
+  metadata: Metadata | null;
+  state: Record<string, unknown> | null;
+  timestamp: string;
+}
+
+interface ConsolidatedMessage extends RawMessage {
+  data: StreamState | MessageData[] | Record<string, unknown>;
 }
 
 const messageVariants = {
@@ -32,13 +43,13 @@ const messageVariants = {
   exit: { opacity: 0, x: 20 }
 };
 
-function consolidateStreamingContent(messages: RawMessage[]) {
-  const consolidated: RawMessage[] = [];
+function consolidateStreamingContent(messages: RawMessage[]): ConsolidatedMessage[] {
+  const consolidated: ConsolidatedMessage[] = [];
   let currentContent = '';
   let currentMetadata: Metadata | null = null;
   let currentThreadId: string | null = null;
   let lastEventType = '';
-  let currentState: any = null;
+  let currentState: Record<string, unknown> | null = null;
 
   // Helper function to normalize content
   const normalizeContent = (content: string) => {
@@ -191,7 +202,7 @@ export function DebugPanel({ messages }: DebugPanelProps) {
     if (msg.event === 'messages') {
       return (
         <div className="space-y-3">
-          {msg.data.map((item: any, mIdx: number) => (
+          {msg.data.map((item: MessageData | Metadata, mIdx: number) => (
             <div key={mIdx} className="space-y-2">
               {item.type && (
                 <div className="text-[#F6DF79] text-xs font-medium">
@@ -317,7 +328,7 @@ export function DebugPanel({ messages }: DebugPanelProps) {
   };
 
   // Add JsonSyntax component for colorful JSON formatting
-  const JsonSyntax = ({ children }: { children: any }) => {
+  const JsonSyntax = ({ children }: { children: Record<string, unknown> | unknown[] }) => {
     const jsonString = JSON.stringify(children, null, 2);
     const coloredJson = jsonString.replace(
       /"([^"]+)":/g,
