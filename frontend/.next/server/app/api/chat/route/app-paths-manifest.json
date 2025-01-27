@@ -1,3 +1,3 @@
 {
-  "/api/chat/route": "app-edge-has-no-entrypoint"
+  "/api/chat/route": "app/api/chat/route.js"
 }

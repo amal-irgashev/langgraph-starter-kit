@@ -5,12 +5,18 @@ from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_community.tools import TavilySearchResults
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.prebuilt import ToolNode
+from langgraph_sdk import get_client
 import json
 import os
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Initialize memory saver for thread-level persistence
+memory = MemorySaver()
 
 # Define the agent state
 class AgentState(TypedDict):
@@ -22,45 +28,27 @@ def get_tools():
     """Get the tools available to the agent."""
     return [TavilySearchResults(max_results=3)]
 
-# Initialize model
-def get_model():
-    """Get the language model for the agent."""
-    return ChatOpenAI(
-        model="gpt-4o",
-        temperature=0,
-        streaming=True
-    ).bind_tools(get_tools())
+tools = get_tools()
+tool_node = ToolNode(tools)
 
-# Tool execution node
-def tool_node(state: AgentState) -> Dict[str, List[ToolMessage]]:
-    """Execute tools based on the agent's requests."""
-    outputs = []
-    tools_by_name = {tool.name: tool for tool in get_tools()}
-    
-    for tool_call in state["messages"][-1].tool_calls:
-        tool_result = tools_by_name[tool_call["name"]].invoke(
-            tool_call["args"]
-        )
-        outputs.append(
-            ToolMessage(
-                content=json.dumps(tool_result),
-                name=tool_call["name"],
-                tool_call_id=tool_call["id"],
-            )
-        )
-    return {"messages": outputs}
+# Initialize model
+model = ChatOpenAI(
+    model="gpt-4o-mini",
+    temperature=0.1,
+    streaming=True
+).bind_tools(tools)
+
+# Define system prompt
+system_prompt = SystemMessage(content="""You are a helpful AI assistant with access to search tools.
+Your goal is to help users by understanding their requests and using search when needed to provide accurate information.
+Always think step by step and use the search tool when you need to find current or factual information.
+When searching, be specific with your queries to get the most relevant results.""")
 
 # Agent node
-def agent_node(state: AgentState) -> Dict[str, List[BaseMessage]]:
+async def agent_node(state: AgentState) -> Dict[str, List[BaseMessage]]:
     """Process messages and decide on next actions."""
-    system_prompt = SystemMessage(content="""You are a helpful AI assistant with access to search tools.
-    Your goal is to help users by understanding their requests and using search when needed to provide accurate information.
-    Always think step by step and use the search tool when you need to find current or factual information.
-    When searching, be specific with your queries to get the most relevant results.""")
-    
-    response = get_model().invoke(
-        [system_prompt] + list(state["messages"])
-    )
+    messages = [system_prompt] + list(state["messages"])
+    response = await model.ainvoke(messages)
     return {"messages": [response]}
 
 # Routing logic
@@ -75,7 +63,7 @@ def should_continue(state: AgentState) -> str:
 
 # Create the graph
 def create_graph() -> StateGraph:
-    """Create the agent workflow graph."""
+    """Create the agent workflow graph with thread-level persistence."""
     workflow = StateGraph(AgentState)
     
     # Add nodes
@@ -96,13 +84,12 @@ def create_graph() -> StateGraph:
     )
     workflow.add_edge("tools", "agent")
     
-    return workflow.compile()
+    # Compile with memory checkpointer for persistence
+    return workflow.compile(checkpointer=memory)
 
 # Create and expose the graph instance
 graph = create_graph()
 
-# Helper function for direct usage
-def process_message(message: str) -> List[dict]:
-    """Process a message through the agent graph."""
-    inputs = {"messages": [("user", message)]}
-    return list(graph.stream(inputs))
+# Initialize LangGraph client
+client = get_client()
+

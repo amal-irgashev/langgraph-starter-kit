@@ -1,88 +1,61 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-
-export interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-export interface RawMessage {
-  event: string;
-  data: any;
-}
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Message, RawMessage } from '@/types/chat';
+import { useEventSource } from '@/hooks/useEventSource';
 
 interface ChatContextType {
   messages: Message[];
   rawMessages: RawMessage[];
+  isLoading: boolean;
+  streamingContent: string;
   addMessage: (message: Message) => void;
   addRawMessage: (message: RawMessage) => void;
-  isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  streamingContent: string;
   setStreamingContent: (content: string) => void;
   clearRawMessages: () => void;
+  setMessages: (messages: Message[]) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-interface ChatProviderProps {
-  children: ReactNode;
-}
-
-export function ChatProvider({ children }: ChatProviderProps) {
+export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [rawMessages, setRawMessages] = useState<RawMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [streamingContent, setStreamingContent] = useState<string>('');
+  const [streamingContent, setStreamingContent] = useState('');
 
-  const addMessage = (message: Message) => {
-    setMessages((prev) => {
-      // For user messages, always add them
-      if (message.role === 'user') {
-        return [...prev, message];
-      }
+  const addMessage = useCallback((message: Message) => {
+    setMessages(prev => [...prev, message]);
+  }, []);
 
-      // For assistant messages, check if it's a duplicate
-      const lastMessage = prev[prev.length - 1];
-      if (lastMessage?.role === 'assistant' && lastMessage?.content === message.content) {
-        return prev;
-      }
-
-      return [...prev, message];
-    });
-  };
-
-  const addRawMessage = (message: RawMessage) => {
+  const addRawMessage = useCallback((message: RawMessage) => {
     setRawMessages(prev => [...prev, message]);
-  };
+  }, []);
 
-  const clearRawMessages = () => {
+  const clearRawMessages = useCallback(() => {
     setRawMessages([]);
+  }, []);
+
+  const value = {
+    messages,
+    rawMessages,
+    isLoading,
+    streamingContent,
+    addMessage,
+    addRawMessage,
+    setIsLoading,
+    setStreamingContent,
+    clearRawMessages,
+    setMessages,
   };
 
-  return (
-    <ChatContext.Provider 
-      value={{ 
-        messages, 
-        rawMessages,
-        addMessage,
-        addRawMessage,
-        isLoading, 
-        setIsLoading,
-        streamingContent,
-        setStreamingContent,
-        clearRawMessages
-      }}
-    >
-      {children}
-    </ChatContext.Provider>
-  );
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }
 
 export function useChat() {
   const context = useContext(ChatContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useChat must be used within a ChatProvider');
   }
   return context;

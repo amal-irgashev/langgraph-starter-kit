@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@langchain/core": "^0.2.36",
+    "@langchain/langgraph-checkpoint-postgres": "^0.0.2"
+  }
+}

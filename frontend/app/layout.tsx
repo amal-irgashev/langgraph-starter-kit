@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClientProvider } from '../contexts/ClientContext';
 import { ChatProvider } from '../contexts/ChatContext';
+import { ThreadProvider } from '../contexts/ThreadContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,9 @@ function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClientProvider config={clientConfig}>
       <ChatProvider>
-        {children}
+        <ThreadProvider>
+          {children}
+        </ThreadProvider>
       </ChatProvider>
     </ClientProvider>
   );
