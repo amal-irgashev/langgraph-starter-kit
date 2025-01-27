@@ -33,10 +33,9 @@ const processStreamChunk = (chunk: any): { content: string | null, sources: stri
     };
   }
   
-  // Handle regular content
-  if (messageData.type === 'AIMessageChunk' && 
-      typeof messageData.content === 'string' && 
-      !messageData.additional_kwargs?.function_call) {
+  // Handle AI message chunks and streaming content
+  if ((messageData.type === 'AIMessageChunk' || messageData.type === 'ai') && 
+      typeof messageData.content === 'string') {
     return { 
       content: messageData.content || null,
       sources: null 

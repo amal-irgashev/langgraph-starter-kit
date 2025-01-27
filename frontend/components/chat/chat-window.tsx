@@ -30,47 +30,49 @@ const EmptyState = () => (
 );
 
 // Loading indicator component
-const LoadingIndicator = () => (
-  <div className="group">
-    <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 text-[#F6DF79] flex items-center justify-center flex-shrink-0">
-        <Loader2 className="w-4 h-4 animate-spin" />
-      </div>
-      <div className="flex-1 space-y-1.5">
-        <div className="text-xs font-medium text-white/70">Assistant</div>
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce" />
-          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-150" />
-          <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-300" />
+const LoadingIndicator = () => {
+  const message: Message = {
+    role: 'assistant',
+    content: '...',
+    type: 'loading'
+  };
+  
+  return (
+    <div className="group">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 text-[#F6DF79] flex items-center justify-center flex-shrink-0">
+          <Loader2 className="w-4 h-4 animate-spin" />
         </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Streaming message component
-const StreamingMessage = ({ content }: { content: string }) => (
-  <div className="group">
-    <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-lg bg-[#F6DF79]/10 text-[#F6DF79] flex items-center justify-center flex-shrink-0">
-        <Bot className="w-4 h-4" />
-      </div>
-      <div className="flex-1 space-y-1.5 overflow-hidden">
-        <div className="text-xs font-medium text-white/70">Assistant</div>
-        <div className="text-white/90">
-          <div className={cn(
-            "text-sm text-white/90 prose prose-invert max-w-none",
-            "prose-p:leading-relaxed prose-p:my-1",
-            "prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10",
-            "prose-code:text-[#F6DF79]"
-          )}>
-            <ReactMarkdown>{content}</ReactMarkdown>
+        <div className="flex-1 space-y-1.5">
+          <div className="text-xs font-medium text-white/70">Assistant</div>
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce" />
+            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-150" />
+            <div className="w-1.5 h-1.5 bg-[#F6DF79]/20 rounded-full animate-bounce delay-300" />
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
+// Streaming message component
+const StreamingMessage = ({ content }: { content: string }) => {
+  const message: Message = {
+    role: 'assistant' as const,
+    content,
+    type: 'streaming',
+    metadata: {
+      streaming: true
+    }
+  };
+  
+  return (
+    <div className="group">
+      <MessageItem message={message} />
+    </div>
+  );
+};
 
 export function ChatWindow({ messages, isLoading, onSendMessage, isReady = true }: ChatWindowProps) {
   const [input, setInput] = useState('');

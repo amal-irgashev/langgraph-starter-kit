@@ -44,13 +44,25 @@ export function MessageItem({ message }: MessageItemProps) {
   if (
     !message.content?.trim() ||
     message.event === 'metadata' ||
-    message.type === 'intermediate' ||
-    message.type === 'AIMessageChunk'
+    message.type === 'intermediate'
   ) {
     return null;
   }
 
-  const isAssistant = message.role === 'assistant';
+  // Determine the role based on message type and metadata
+  let role = message.role;
+  
+  // Handle AIMessageChunk type
+  if (message.type === 'AIMessageChunk' || message.type === 'ai') {
+    role = 'assistant';
+  }
+  
+  // Handle streaming messages
+  if (message.metadata?.streaming) {
+    role = 'assistant';
+  }
+
+  const isAssistant = role === 'assistant';
   const sources = message.metadata?.sources as string[] | undefined;
   
   return (
@@ -62,11 +74,11 @@ export function MessageItem({ message }: MessageItemProps) {
             ? "bg-[#F6DF79]/10 text-[#F6DF79]" 
             : "bg-white/5 text-white/70"
         )}>
-          <MessageIcon role={message.role} />
+          <MessageIcon role={role} />
         </div>
         <div className="flex-1 space-y-1.5 overflow-hidden">
           <div className="text-xs font-medium text-white/70">
-            {isAssistant ? 'Assistant' : 'You'}
+            {role === 'assistant' ? 'Assistant' : 'You'}
           </div>
           <div className={markdownStyles}>
             <ReactMarkdown>{message.content}</ReactMarkdown>
