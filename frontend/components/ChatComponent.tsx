@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChat } from '@/contexts/ChatContext';
+import { useThread } from '@/contexts/ThreadContext';
 import { useChatActions } from '@/hooks/useChatActions';
 import { ChatThread } from './chat/chat-thread';
 import { ChatWindow } from './chat/chat-window';
@@ -11,23 +12,44 @@ import { Thread } from '@/types/chat';
 import { DebugPanel } from './chat/debug-panel';
 
 export function ChatComponent() {
-  const { messages, rawMessages, isLoading, streamingContent } = useChat();
-  const { sendMessage, ready } = useChatActions();
+  const { messages, rawMessages, isLoading } = useChat();
+  const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId } = useThread();
+  const { sendMessage, ready } = useChatActions({
+    threadId: currentThreadId || undefined
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
-  const [activeThreadId, setActiveThreadId] = useState<string | undefined>();
 
+  // Load the first thread if none is selected
+  useEffect(() => {
+    if (!currentThreadId && threads.length > 0) {
+      const firstThread = threads[0];
+      setCurrentThreadId(firstThread.thread_id);
+      loadThreadHistory(firstThread.thread_id).catch(console.error);
+    }
+  }, [currentThreadId, threads, setCurrentThreadId, loadThreadHistory]);
 
-
-  const handleNewChat = () => {
-    // In a real app, you would create a new thread here
-    console.log('Creating new chat...');
+  const handleNewChat = async () => {
+    try {
+      const newThreadId = await createNewThread();
+      await loadThreadHistory(newThreadId);
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+    }
   };
 
-  const handleSelectThread = (threadId: string) => {
-    setActiveThreadId(threadId);
-    // In a real app, you would load the thread messages here
+  const handleSelectThread = async (threadId: string) => {
+    try {
+      setCurrentThreadId(threadId);
+      await loadThreadHistory(threadId);
+    } catch (error) {
+      console.error('Error loading thread:', error);
+    }
   };
+
+  // Get current thread title
+  const currentThread = threads.find(t => t.thread_id === currentThreadId);
+  const threadTitle = currentThread?.messages[0]?.content?.slice(0, 50) || 'New Chat';
 
   return (
     <div className="flex h-screen bg-[#1A1A1A] overflow-hidden">
@@ -42,7 +64,7 @@ export function ChatComponent() {
           threads={threads}
           onNewChat={handleNewChat}
           onSelectThread={handleSelectThread}
-          activeThreadId={activeThreadId}
+          activeThreadId={currentThreadId || undefined}
         />
       </div>
 
@@ -58,7 +80,7 @@ export function ChatComponent() {
               <Menu className="w-5 h-5 text-gray-400" />
             </button>
             <div className="text-gray-200">
-              {activeThreadId ? threads.find(t => t.id === activeThreadId)?.title : 'New Chat'}
+              {threadTitle}
             </div>
           </div>
           
@@ -84,6 +106,7 @@ export function ChatComponent() {
               messages={messages}
               isLoading={isLoading}
               onSendMessage={sendMessage}
+              isReady={ready}
             />
           </div>
 

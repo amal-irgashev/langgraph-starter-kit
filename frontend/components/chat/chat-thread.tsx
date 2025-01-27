@@ -99,8 +99,8 @@ const Header = () => (
         <Bot className="w-4 h-4 text-[#F6DF79]" />
       </div>
       <div>
-        <h1 className="text-sm font-medium text-white/90">AI Assistant</h1>
-        <p className="text-[10px] text-white/40">Powered by Claude</p>
+        <h1 className="text-sm font-medium text-white/90">AI Agent</h1>
+        <p className="text-[10px] text-white/40">Powered by LangGraph SDK</p>
       </div>
     </div>
   </div>

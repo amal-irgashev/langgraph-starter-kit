@@ -3,14 +3,15 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { Message, RawMessage } from '@/types/chat';
 
-// Types
+// Types for managing chat state and messages
 interface ChatState {
-  messages: Message[];
-  rawMessages: RawMessage[];
-  isLoading: boolean;
-  streamingContent: string;
+  messages: Message[];        // Processed chat messages
+  rawMessages: RawMessage[]; // Raw message data before processing
+  isLoading: boolean;        // Loading state for async operations
+  streamingContent: string;  // Content being streamed in real-time
 }
 
+// Extended interface that includes state management functions
 interface ChatContextType extends ChatState {
   addMessage: (message: Message) => void;
   addRawMessage: (message: RawMessage) => void;
@@ -20,7 +21,7 @@ interface ChatContextType extends ChatState {
   setMessages: (messages: Message[]) => void;
 }
 
-// Initial state
+// Default initial state for the chat context
 const initialState: ChatState = {
   messages: [],
   rawMessages: [],
@@ -28,11 +29,15 @@ const initialState: ChatState = {
   streamingContent: '',
 };
 
-// Create context with a default value
+// Create context with undefined default to ensure proper provider usage
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// Custom hook for actions
+/**
+ * Custom hook that manages chat actions and state updates
+ * Provides memoized functions to modify chat state
+ */
 const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStateAction<ChatState>>) => {
+  // Add a new processed message to the chat
   const addMessage = useCallback((message: Message) => {
     setState(prev => ({
       ...prev,
@@ -40,6 +45,7 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
     }));
   }, [setState]);
 
+  // Add a new raw message to the chat
   const addRawMessage = useCallback((message: RawMessage) => {
     setState(prev => ({
       ...prev,
@@ -47,6 +53,7 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
     }));
   }, [setState]);
 
+  // Update loading state for async operations
   const setIsLoading = useCallback((loading: boolean) => {
     setState(prev => ({
       ...prev,
@@ -54,6 +61,7 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
     }));
   }, [setState]);
 
+  // Update streaming content during real-time message delivery
   const setStreamingContent = useCallback((content: string) => {
     setState(prev => ({
       ...prev,
@@ -61,6 +69,7 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
     }));
   }, [setState]);
 
+  // Clear all raw messages from state
   const clearRawMessages = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -68,6 +77,7 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
     }));
   }, [setState]);
 
+  // Replace all messages with a new array
   const setMessages = useCallback((messages: Message[]) => {
     setState(prev => ({
       ...prev,
@@ -85,10 +95,15 @@ const useChatActions = (state: ChatState, setState: React.Dispatch<React.SetStat
   };
 };
 
+/**
+ * ChatProvider component that manages chat state and provides context
+ * Combines state and actions into a single context value
+ */
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<ChatState>(initialState);
   const actions = useChatActions(state, setState);
 
+  // Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     ...state,
     ...actions
@@ -97,6 +112,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }
 
+/**
+ * Custom hook to access chat context
+ * Throws error if used outside ChatProvider
+ */
 export function useChat() {
   const context = useContext(ChatContext);
   if (context === undefined) {

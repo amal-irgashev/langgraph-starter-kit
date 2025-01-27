@@ -1,4 +1,5 @@
-// component for the chat interface
+// Main chat component that handles the chat interface, thread management, and debug panel
+// Includes sidebar for thread navigation and main chat window with optional debug panel
 
 'use client';
 
@@ -15,14 +16,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useClient } from '@/contexts/ClientContext';
 import { Thread } from '@/types/chat';
 
-// Animation configuration
+// Animation configuration for smooth transitions
 const springTransition = {
   type: "spring",
   stiffness: 300,
   damping: 30
 };
 
-// Header component for better organization
+/**
+ * Header component that displays thread info and controls for sidebar/debug panel
+ * Includes status indicator, thread title, timestamp and toggle buttons
+ */
 const ChatHeader = ({ 
   isSidebarOpen, 
   setIsSidebarOpen, 
@@ -87,40 +91,20 @@ const ChatHeader = ({
   </div>
 );
 
+/**
+ * Main Chat component that orchestrates the entire chat interface
+ * Manages thread state, message filtering, and UI layout
+ */
 export function Chat() {
+  // Hooks for managing chat state and functionality
   const { messages, isLoading: chatLoading, rawMessages } = useChat();
-  const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId, setThreads } = useThread();
+  const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId } = useThread();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const client = useClient();
 
-  // Fetch all threads when component mounts
-  useEffect(() => {
-    const fetchThreads = async () => {
-      if (!client) return;
-      
-      try {
-        const allThreads = await client.threads.search();
-        setThreads(allThreads.map(thread => ({
-          thread_id: thread.thread_id,
-          created_at: thread.created_at || new Date().toISOString(),
-          title: '',
-          lastMessage: '',
-          timestamp: thread.created_at || new Date().toISOString(),
-          metadata: thread.metadata,
-          messages: [] // Initialize with empty messages array
-        })));
-      } catch (error) {
-        console.error('Error fetching threads:', error);
-      }
-    };
-
-    fetchThreads();
-  }, [client, setThreads]);
-
-  // Filter out tool messages
+  // Filter out system/tool messages to show only relevant chat messages
   const filteredMessages = messages.filter(message => {
-    // Filter out tool messages with JSON array responses
     return !(
       message.event === 'messages' ||
       (message.content && message.content.startsWith('[{') && message.content.endsWith('}]'))
@@ -131,6 +115,9 @@ export function Chat() {
     threadId: currentThreadId || undefined,
   });
 
+  /**
+   * Creates a new chat thread and loads its history
+   */
   const handleNewChat = async () => {
     try {
       const newThreadId = await createNewThread();
@@ -140,6 +127,9 @@ export function Chat() {
     }
   };
 
+  /**
+   * Handles thread selection and loads its message history
+   */
   const handleSelectThread = async (threadId: string) => {
     try {
       setCurrentThreadId(threadId);
@@ -149,12 +139,14 @@ export function Chat() {
     }
   };
 
+  // Load thread history when current thread changes
   useEffect(() => {
     if (currentThreadId) {
       loadThreadHistory(currentThreadId).catch(console.error);
     }
   }, [currentThreadId, loadThreadHistory]);
 
+  // Prepare thread info for display in header
   const currentThread = threads.find(t => t.thread_id === currentThreadId);
   const threadInfo = {
     title: currentThread?.messages[0]?.content?.slice(0, 50) || 'New Chat',
@@ -166,6 +158,7 @@ export function Chat() {
 
   return (
     <div className="flex h-screen bg-[#0F0F0F] relative overflow-hidden">
+      {/* Overlay for mobile sidebar */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -178,6 +171,7 @@ export function Chat() {
         )}
       </AnimatePresence>
 
+      {/* Animated sidebar */}
       <motion.div
         initial={false}
         animate={{
@@ -195,6 +189,7 @@ export function Chat() {
         />
       </motion.div>
 
+      {/* Main chat area with header and message window */}
       <div className="flex-1 flex flex-col min-w-0 h-screen relative">
         <ChatHeader
           isSidebarOpen={isSidebarOpen}
@@ -205,6 +200,7 @@ export function Chat() {
           ready={ready}
         />
 
+        {/* Animated layout for chat window and debug panel */}
         <motion.div className="flex-1 overflow-hidden flex" layout>
           <motion.div
             layout
@@ -222,6 +218,7 @@ export function Chat() {
             />
           </motion.div>
 
+          {/* Animated debug panel */}
           <motion.div
             layout
             initial={{ width: 0 }}

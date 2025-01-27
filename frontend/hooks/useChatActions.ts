@@ -17,20 +17,33 @@ interface UseChatActionsProps {
 // Utility function to get graph ID
 const getGraphId = () => process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID || 'react_agent';
 
-// Process stream chunk to extract content
-const processStreamChunk = (chunk: any): string | null => {
-  if (chunk.event !== "messages") return null;
+// Process stream chunk to extract content and sources
+const processStreamChunk = (chunk: any): { content: string | null, sources: string | null } => {
+  if (chunk.event !== "messages") return { content: null, sources: null };
   
   const [messageData, metadata] = chunk.data;
-  if (messageData.type !== 'AIMessageChunk' || 
-      metadata?.langgraph_node?.includes('tool') || 
-      typeof messageData.content !== 'string' || 
+  
+  // Handle tool messages (sources)
+  if (metadata?.langgraph_node?.includes('tool') || 
       messageData.additional_kwargs?.tool_calls || 
-      messageData.additional_kwargs?.function_call) {
-    return null;
+      messageData.type === 'tool') {
+    return { 
+      content: null, 
+      sources: messageData.content || null 
+    };
   }
   
-  return messageData.content || null;
+  // Handle regular content
+  if (messageData.type === 'AIMessageChunk' && 
+      typeof messageData.content === 'string' && 
+      !messageData.additional_kwargs?.function_call) {
+    return { 
+      content: messageData.content || null,
+      sources: null 
+    };
+  }
+  
+  return { content: null, sources: null };
 };
 
 export function useChatActions({ threadId: initialThreadId }: UseChatActionsProps = {}) {
@@ -50,18 +63,8 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
       if (!client) return;
 
       try {
-        // If no thread ID is provided, create a new one
-        if (!threadId) {
-          const thread = await client.threads.create({
-            metadata: { graph_id: getGraphId() }
-          });
-          console.log('Created new thread:', thread.thread_id);
-          setThreadId(thread.thread_id);
-        }
-
-        // Load thread history
+        // Only load history if we have a threadId
         if (threadId) {
-          console.log('Loading history for thread:', threadId);
           await loadThreadHistory(threadId);
         }
 
@@ -82,6 +85,7 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
 
     setIsLoading(true);
     let currentContent = '';
+    let sources: string[] = [];
 
     try {
       console.log('Using thread ID for message:', threadId);
@@ -106,21 +110,28 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
         // Add every chunk to raw messages for debug panel
         addRawMessage(chunk);
         
-        const content = processStreamChunk(chunk);
+        const { content, sources: sourceContent } = processStreamChunk(chunk);
         if (content) {
           currentContent += content;
           console.log('Updated content:', currentContent);
           setStreamingContent(currentContent);
         }
+        if (sourceContent) {
+          sources.push(sourceContent);
+        }
       }
 
       console.log('Stream completed for thread:', threadId);
       
-      // Add the complete assistant message only after streaming is done
+      // Add the complete assistant message with sources only after streaming is done
       if (currentContent.trim()) {
         const assistantMessage: Message = {
           role: 'assistant' as const,
-          content: currentContent
+          content: currentContent,
+          // If we have sources, add them as metadata
+          metadata: sources.length ? {
+            sources: sources
+          } : undefined
         };
         addMessage(assistantMessage);
       }

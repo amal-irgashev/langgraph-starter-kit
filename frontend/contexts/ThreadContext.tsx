@@ -1,16 +1,26 @@
 'use client';
 
+// Import statements and module declarations
 import React from 'react';
 import { useClient } from './ClientContext';
 import { useChat } from './ChatContext';
 import { Message } from '@/types/chat';
 
+// Type for thread state values
+interface ThreadState {
+  values?: {
+    messages?: Message[];
+  };
+}
+
+// Represents a chat thread with messages
 interface Thread {
   thread_id: string;
   created_at: string;
   messages: Message[];
 }
 
+// Context type definition for thread management
 interface ThreadContextType {
   threads: Thread[];
   currentThreadId: string | null;
@@ -21,39 +31,18 @@ interface ThreadContextType {
   deleteThread: (threadId: string) => Promise<void>;
   deleteAllThreads: () => Promise<void>;
   setCurrentThreadId: (threadId: string | null) => void;
-  setThreads: (threads: Thread[]) => void;
 }
 
+// Create context for thread management
 const ThreadContext = React.createContext<ThreadContextType | null>(null);
 
-// Utility functions to keep the code DRY
+// Helper function to get the graph ID from environment variables
 const getGraphId = () => process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID || 'react_agent';
 
-const formatThread = (thread: any): Thread => ({
-  thread_id: thread.thread_id,
-  created_at: thread.created_at || new Date().toISOString(),
-  messages: []
-});
-
-const formatMessages = (state: any): Message[] => {
-  if (!state) return [];
-  
-  const rawState = state as any;
-  if (rawState?.values?.messages && Array.isArray(rawState.values.messages)) {
-    return rawState.values.messages.map((msg: { type: string; content: string }) => ({
-      role: msg.type === 'human' ? 'user' : 'assistant' as const,
-      content: msg.content
-    }));
-  }
-  if (rawState?.messages && Array.isArray(rawState.messages)) {
-    return rawState.messages.map((msg: { role: string; content: string }) => ({
-      role: msg.role as 'user' | 'assistant',
-      content: msg.content
-    }));
-  }
-  return [];
-};
-
+/**
+ * ThreadProvider component that manages chat thread state and operations
+ * Provides context for thread management to child components
+ */
 export function ThreadProvider({ children }: { children: React.ReactNode }) {
   const client = useClient();
   const [threads, setThreads] = React.useState<Thread[]>([]);
@@ -61,23 +50,43 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const { setMessages } = useChat();
 
+  /**
+   * Loads all threads from the backend
+   * Filters and sorts threads by creation date
+   */
   const loadThreads = React.useCallback(async () => {
     if (!client) return;
     
     try {
       setIsLoading(true);
       const response = await client.threads.search({
-        metadata: { graph_id: getGraphId() },
-        limit: 10
+        metadata: { graph_id: getGraphId() }
       });
       
-      const validThreads = response
-        .filter(thread => thread.thread_id)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        .map(formatThread);
-      
-      setThreads(validThreads);
-      await Promise.all(validThreads.map(thread => loadThreadHistory(thread.thread_id)));
+      const validThreads = await Promise.all(
+        response
+          .filter(thread => thread.thread_id)
+          .map(async thread => {
+            try {
+              const state = await client.threads.getState(thread.thread_id) as ThreadState;
+              return {
+                thread_id: thread.thread_id,
+                created_at: thread.created_at || new Date().toISOString(),
+                messages: state?.values?.messages || []
+              };
+            } catch (error) {
+              console.error(`Thread ${thread.thread_id} not found:`, error);
+              return null;
+            }
+          })
+      );
+
+      // Filter out null threads and sort by creation date
+      const activeThreads = validThreads
+        .filter((thread): thread is Thread => thread !== null)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setThreads(activeThreads);
     } catch (error) {
       console.error('Error loading threads:', error);
     } finally {
@@ -85,19 +94,54 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
     }
   }, [client]);
 
+  // Initialize threads when component mounts
+  React.useEffect(() => {
+    loadThreads();
+  }, [loadThreads]);
+
+  /**
+   * Loads message history for a specific thread
+   * Updates both thread messages and current chat messages
+   */
+  const loadThreadHistory = React.useCallback(async (threadId: string) => {
+    if (!client) return;
+
+    try {
+      const state = await client.threads.getState(threadId) as ThreadState;
+      const messages = state?.values?.messages || [];
+      
+      // Update thread messages in state
+      setThreads(prev => prev.map(thread => 
+        thread.thread_id === threadId ? { ...thread, messages } : thread
+      ));
+      setMessages(messages);
+    } catch (error) {
+      console.error(`Error loading thread history:`, error);
+    }
+  }, [client, setMessages]);
+
+  /**
+   * Creates a new chat thread
+   * Returns the new thread ID
+   */
   const createNewThread = React.useCallback(async () => {
     if (!client) throw new Error('Client not initialized');
 
     try {
       setIsLoading(true);
-      const response = await client.threads.create({
+      const thread = await client.threads.create({
         metadata: { graph_id: getGraphId() }
       });
       
-      const newThread = formatThread(response);
+      const newThread = {
+        thread_id: thread.thread_id,
+        created_at: thread.created_at || new Date().toISOString(),
+        messages: []
+      };
+
+      // Add new thread to beginning of threads list
       setThreads(prev => [newThread, ...prev]);
       setCurrentThreadId(newThread.thread_id);
-      
       return newThread.thread_id;
     } catch (error) {
       console.error('Error creating thread:', error);
@@ -107,43 +151,35 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
     }
   }, [client]);
 
-  const loadThreadHistory = React.useCallback(async (threadId: string) => {
-    if (!client) return;
-
-    try {
-      const state = await client.threads.getState(threadId);
-      const messages = formatMessages(state);
-      
-      setThreads(prev => prev.map(thread => 
-        thread.thread_id === threadId ? { ...thread, messages } : thread
-      ));
-      setMessages(messages);
-    } catch (error) {
-      console.error(`Error loading thread history for ${threadId}:`, error);
-    }
-  }, [client, setMessages]);
-
+  /**
+   * Deletes a specific thread
+   * If current thread is deleted, resets current thread state
+   */
   const deleteThread = React.useCallback(async (threadId: string) => {
     if (!client) return;
 
     try {
       setIsLoading(true);
       await client.threads.delete(threadId);
+      await loadThreads();
       
-      setThreads(prev => prev.filter(t => t.thread_id !== threadId));
+      // Reset current thread if it was deleted
       if (currentThreadId === threadId) {
         setCurrentThreadId(null);
+        setMessages([]);
       }
-      
-      await loadThreads();
     } catch (error) {
       console.error('Error deleting thread:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [client, currentThreadId, loadThreads]);
+  }, [client, currentThreadId, setMessages, loadThreads]);
 
+  /**
+   * Deletes all threads associated with current graph
+   * Resets all thread-related state
+   */
   const deleteAllThreads = React.useCallback(async () => {
     if (!client) return;
 
@@ -153,22 +189,26 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
         metadata: { graph_id: getGraphId() }
       });
       
-      await Promise.all(allThreads.map(thread => 
-        client.threads.delete(thread.thread_id).catch(error => 
-          console.error(`Error deleting thread ${thread.thread_id}:`, error)
+      // Delete all threads in parallel
+      await Promise.all(
+        allThreads.map(thread => 
+          client.threads.delete(thread.thread_id)
+            .catch(error => console.error(`Error deleting thread ${thread.thread_id}:`, error))
         )
-      ));
+      );
       
-      setThreads([]);
+      await loadThreads();
       setCurrentThreadId(null);
+      setMessages([]);
     } catch (error) {
       console.error('Error deleting all threads:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [client]);
+  }, [client, setMessages, loadThreads]);
 
+  // Context value containing all thread management functions and state
   const value = {
     threads,
     currentThreadId,
@@ -178,8 +218,7 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
     loadThreadHistory,
     deleteThread,
     deleteAllThreads,
-    setCurrentThreadId,
-    setThreads
+    setCurrentThreadId
   };
 
   return (
@@ -189,6 +228,10 @@ export function ThreadProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Custom hook to access thread context
+ * Throws error if used outside ThreadProvider
+ */
 export function useThread() {
   const context = React.useContext(ThreadContext);
   if (!context) {

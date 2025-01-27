@@ -24,14 +24,31 @@ var _s = __turbopack_refresh__.signature();
 ;
 // Utility function to get graph ID
 const getGraphId = ()=>("TURBOPACK compile-time value", "react_agent") || 'react_agent';
-// Process stream chunk to extract content
+// Process stream chunk to extract content and sources
 const processStreamChunk = (chunk)=>{
-    if (chunk.event !== "messages") return null;
+    if (chunk.event !== "messages") return {
+        content: null,
+        sources: null
+    };
     const [messageData, metadata] = chunk.data;
-    if (messageData.type !== 'AIMessageChunk' || metadata?.langgraph_node?.includes('tool') || typeof messageData.content !== 'string' || messageData.additional_kwargs?.tool_calls || messageData.additional_kwargs?.function_call) {
-        return null;
+    // Handle tool messages (sources)
+    if (metadata?.langgraph_node?.includes('tool') || messageData.additional_kwargs?.tool_calls || messageData.type === 'tool') {
+        return {
+            content: null,
+            sources: messageData.content || null
+        };
     }
-    return messageData.content || null;
+    // Handle regular content
+    if (messageData.type === 'AIMessageChunk' && typeof messageData.content === 'string' && !messageData.additional_kwargs?.function_call) {
+        return {
+            content: messageData.content || null,
+            sources: null
+        };
+    }
+    return {
+        content: null,
+        sources: null
+    };
 };
 function useChatActions({ threadId: initialThreadId } = {}) {
     _s();
@@ -53,19 +70,8 @@ function useChatActions({ threadId: initialThreadId } = {}) {
             async function init() {
                 if (!client) return;
                 try {
-                    // If no thread ID is provided, create a new one
-                    if (!threadId) {
-                        const thread = await client.threads.create({
-                            metadata: {
-                                graph_id: getGraphId()
-                            }
-                        });
-                        console.log('Created new thread:', thread.thread_id);
-                        setThreadId(thread.thread_id);
-                    }
-                    // Load thread history
+                    // Only load history if we have a threadId
                     if (threadId) {
-                        console.log('Loading history for thread:', threadId);
                         await loadThreadHistory(threadId);
                     }
                     setReady(true);
@@ -88,6 +94,7 @@ function useChatActions({ threadId: initialThreadId } = {}) {
             }
             setIsLoading(true);
             let currentContent = '';
+            let sources = [];
             try {
                 console.log('Using thread ID for message:', threadId);
                 // Add the user message immediately
@@ -115,19 +122,26 @@ function useChatActions({ threadId: initialThreadId } = {}) {
                     console.log('Received stream chunk:', chunk);
                     // Add every chunk to raw messages for debug panel
                     addRawMessage(chunk);
-                    const content = processStreamChunk(chunk);
+                    const { content, sources: sourceContent } = processStreamChunk(chunk);
                     if (content) {
                         currentContent += content;
                         console.log('Updated content:', currentContent);
                         setStreamingContent(currentContent);
                     }
+                    if (sourceContent) {
+                        sources.push(sourceContent);
+                    }
                 }
                 console.log('Stream completed for thread:', threadId);
-                // Add the complete assistant message only after streaming is done
+                // Add the complete assistant message with sources only after streaming is done
                 if (currentContent.trim()) {
                     const assistantMessage = {
                         role: 'assistant',
-                        content: currentContent
+                        content: currentContent,
+                        // If we have sources, add them as metadata
+                        metadata: sources.length ? {
+                            sources: sources
+                        } : undefined
                     };
                     addMessage(assistantMessage);
                 }
@@ -426,7 +440,7 @@ const Header = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                             className: "text-sm font-medium text-white/90",
-                            children: "AI Assistant"
+                            children: "AI Agent"
                         }, void 0, false, {
                             fileName: "[project]/components/chat/chat-thread.tsx",
                             lineNumber: 102,
@@ -434,7 +448,7 @@ const Header = ()=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-[10px] text-white/40",
-                            children: "Powered by Claude"
+                            children: "Powered by LangGraph SDK"
                         }, void 0, false, {
                             fileName: "[project]/components/chat/chat-thread.tsx",
                             lineNumber: 103,
@@ -2151,7 +2165,8 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 
 var { r: __turbopack_require__, f: __turbopack_module_context__, i: __turbopack_import__, s: __turbopack_esm__, v: __turbopack_export_value__, n: __turbopack_export_namespace__, c: __turbopack_cache__, M: __turbopack_modules__, l: __turbopack_load__, j: __turbopack_dynamic__, P: __turbopack_resolve_absolute_path__, U: __turbopack_relative_url__, R: __turbopack_resolve_module_id_path__, b: __turbopack_worker_blob_url__, g: global, __dirname, k: __turbopack_refresh__, m: module, z: __turbopack_require_stub__ } = __turbopack_context__;
 {
-// component for the chat interface
+// Main chat component that handles the chat interface, thread management, and debug panel
+// Includes sidebar for thread navigation and main chat window with optional debug panel
 __turbopack_esm__({
     "Chat": (()=>Chat)
 });
@@ -2184,14 +2199,16 @@ var _s = __turbopack_refresh__.signature();
 ;
 ;
 ;
-// Animation configuration
+// Animation configuration for smooth transitions
 const springTransition = {
     type: "spring",
     stiffness: 300,
     damping: 30
 };
-// Header component for better organization
-const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOpen, threadInfo, ready })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+/**
+ * Header component that displays thread info and controls for sidebar/debug panel
+ * Includes status indicator, thread title, timestamp and toggle buttons
+ */ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOpen, threadInfo, ready })=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "flex-none h-14 bg-[#0F0F0F]/95 backdrop-blur-lg border-b border-white/5 z-10",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
             className: "h-full flex items-center justify-between px-4",
@@ -2212,18 +2229,18 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                                 className: "w-4 h-4"
                             }, void 0, false, {
                                 fileName: "[project]/components/chat/chat.tsx",
-                                lineNumber: 55,
+                                lineNumber: 59,
                                 columnNumber: 28
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$menu$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Menu$3e$__["Menu"], {
                                 className: "w-4 h-4"
                             }, void 0, false, {
                                 fileName: "[project]/components/chat/chat.tsx",
-                                lineNumber: 55,
+                                lineNumber: 59,
                                 columnNumber: 56
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/chat/chat.tsx",
-                            lineNumber: 44,
+                            lineNumber: 48,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2233,7 +2250,7 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                                     className: (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$utils$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["cn"])("w-2 h-2 rounded-full", ready ? "bg-[#F6DF79]" : "bg-white/20")
                                 }, void 0, false, {
                                     fileName: "[project]/components/chat/chat.tsx",
-                                    lineNumber: 58,
+                                    lineNumber: 62,
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2241,7 +2258,7 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                                     children: threadInfo.title
                                 }, void 0, false, {
                                     fileName: "[project]/components/chat/chat.tsx",
-                                    lineNumber: 62,
+                                    lineNumber: 66,
                                     columnNumber: 11
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2249,19 +2266,19 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                                     children: threadInfo.timestamp
                                 }, void 0, false, {
                                     fileName: "[project]/components/chat/chat.tsx",
-                                    lineNumber: 65,
+                                    lineNumber: 69,
                                     columnNumber: 11
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/chat/chat.tsx",
-                            lineNumber: 57,
+                            lineNumber: 61,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/chat/chat.tsx",
-                    lineNumber: 43,
+                    lineNumber: 47,
                     columnNumber: 7
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].button, {
@@ -2278,7 +2295,7 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                             className: "w-4 h-4"
                         }, void 0, false, {
                             fileName: "[project]/components/chat/chat.tsx",
-                            lineNumber: 81,
+                            lineNumber: 85,
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -2286,73 +2303,45 @@ const ChatHeader = ({ isSidebarOpen, setIsSidebarOpen, isDebugOpen, setIsDebugOp
                             children: isDebugOpen ? 'Hide Debug' : 'Show Debug'
                         }, void 0, false, {
                             fileName: "[project]/components/chat/chat.tsx",
-                            lineNumber: 82,
+                            lineNumber: 86,
                             columnNumber: 9
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/chat/chat.tsx",
-                    lineNumber: 70,
+                    lineNumber: 74,
                     columnNumber: 7
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/chat/chat.tsx",
-            lineNumber: 42,
+            lineNumber: 46,
             columnNumber: 5
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/chat/chat.tsx",
-        lineNumber: 41,
+        lineNumber: 45,
         columnNumber: 3
     }, this);
 _c = ChatHeader;
 function Chat() {
     _s();
+    // Hooks for managing chat state and functionality
     const { messages, isLoading: chatLoading, rawMessages } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChat"])();
-    const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId, setThreads } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ThreadContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useThread"])();
+    const { threads, currentThreadId, createNewThread, loadThreadHistory, setCurrentThreadId } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ThreadContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useThread"])();
     const [isSidebarOpen, setIsSidebarOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
     const [isDebugOpen, setIsDebugOpen] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const client = (0, __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ClientContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useClient"])();
-    // Fetch all threads when component mounts
-    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
-        "Chat.useEffect": ()=>{
-            const fetchThreads = {
-                "Chat.useEffect.fetchThreads": async ()=>{
-                    if (!client) return;
-                    try {
-                        const allThreads = await client.threads.search();
-                        setThreads(allThreads.map({
-                            "Chat.useEffect.fetchThreads": (thread)=>({
-                                    thread_id: thread.thread_id,
-                                    created_at: thread.created_at || new Date().toISOString(),
-                                    title: '',
-                                    lastMessage: '',
-                                    timestamp: thread.created_at || new Date().toISOString(),
-                                    metadata: thread.metadata,
-                                    messages: [] // Initialize with empty messages array
-                                })
-                        }["Chat.useEffect.fetchThreads"]));
-                    } catch (error) {
-                        console.error('Error fetching threads:', error);
-                    }
-                }
-            }["Chat.useEffect.fetchThreads"];
-            fetchThreads();
-        }
-    }["Chat.useEffect"], [
-        client,
-        setThreads
-    ]);
-    // Filter out tool messages
+    // Filter out system/tool messages to show only relevant chat messages
     const filteredMessages = messages.filter((message)=>{
-        // Filter out tool messages with JSON array responses
         return !(message.event === 'messages' || message.content && message.content.startsWith('[{') && message.content.endsWith('}]'));
     });
     const { sendMessage, ready } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$hooks$2f$useChatActions$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChatActions"])({
         threadId: currentThreadId || undefined
     });
-    const handleNewChat = async ()=>{
+    /**
+   * Creates a new chat thread and loads its history
+   */ const handleNewChat = async ()=>{
         try {
             const newThreadId = await createNewThread();
             await loadThreadHistory(newThreadId);
@@ -2360,7 +2349,9 @@ function Chat() {
             console.error('Error creating new chat:', error);
         }
     };
-    const handleSelectThread = async (threadId)=>{
+    /**
+   * Handles thread selection and loads its message history
+   */ const handleSelectThread = async (threadId)=>{
         try {
             setCurrentThreadId(threadId);
             await loadThreadHistory(threadId);
@@ -2368,6 +2359,7 @@ function Chat() {
             console.error('Error loading thread:', error);
         }
     };
+    // Load thread history when current thread changes
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "Chat.useEffect": ()=>{
             if (currentThreadId) {
@@ -2378,6 +2370,7 @@ function Chat() {
         currentThreadId,
         loadThreadHistory
     ]);
+    // Prepare thread info for display in header
     const currentThread = threads.find((t)=>t.thread_id === currentThreadId);
     const threadInfo = {
         title: currentThread?.messages[0]?.content?.slice(0, 50) || 'New Chat',
@@ -2404,12 +2397,12 @@ function Chat() {
                     onClick: ()=>setIsSidebarOpen(false)
                 }, void 0, false, {
                     fileName: "[project]/components/chat/chat.tsx",
-                    lineNumber: 171,
+                    lineNumber: 164,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/chat/chat.tsx",
-                lineNumber: 169,
+                lineNumber: 162,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -2427,12 +2420,12 @@ function Chat() {
                     activeThreadId: currentThreadId || undefined
                 }, void 0, false, {
                     fileName: "[project]/components/chat/chat.tsx",
-                    lineNumber: 190,
+                    lineNumber: 184,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/chat/chat.tsx",
-                lineNumber: 181,
+                lineNumber: 175,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2447,7 +2440,7 @@ function Chat() {
                         ready: ready
                     }, void 0, false, {
                         fileName: "[project]/components/chat/chat.tsx",
-                        lineNumber: 199,
+                        lineNumber: 194,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -2468,12 +2461,12 @@ function Chat() {
                                     isReady: ready
                                 }, void 0, false, {
                                     fileName: "[project]/components/chat/chat.tsx",
-                                    lineNumber: 217,
+                                    lineNumber: 213,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/chat/chat.tsx",
-                                lineNumber: 209,
+                                lineNumber: 205,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
@@ -2492,39 +2485,39 @@ function Chat() {
                                         messages: rawMessages
                                     }, void 0, false, {
                                         fileName: "[project]/components/chat/chat.tsx",
-                                        lineNumber: 236,
+                                        lineNumber: 233,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/chat/chat.tsx",
-                                    lineNumber: 235,
+                                    lineNumber: 232,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/chat/chat.tsx",
-                                lineNumber: 225,
+                                lineNumber: 222,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/chat/chat.tsx",
-                        lineNumber: 208,
+                        lineNumber: 204,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/chat/chat.tsx",
-                lineNumber: 198,
+                lineNumber: 193,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/chat/chat.tsx",
-        lineNumber: 168,
+        lineNumber: 160,
         columnNumber: 5
     }, this);
 }
-_s(Chat, "LlMQRUFsgU620T9bxdnnmjQpk+E=", false, function() {
+_s(Chat, "r0Qozee9OwShI4TsPuQo2hu5fAw=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ChatContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useChat"],
         __TURBOPACK__imported__module__$5b$project$5d2f$contexts$2f$ThreadContext$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useThread"],
