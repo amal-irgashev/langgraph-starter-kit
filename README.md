@@ -27,16 +27,50 @@ This starter kit provides a foundation for building autonomous agents using Lang
 - 🔌 **SDK Integration**: Production-ready examples of the LangGraph Client JS SDK
 - 📦 **React Hooks & Contexts**: Ready-to-use hooks and contexts for agent state management
 
-## 🤖 Agent Architecture
+## 🧠 Key Concepts
 
-The starter kit implements a ReAct agent (`backend/agent.py`) with the following capabilities:
+### 1. Backend (Python with LangGraph)
 
-- 🔍 **Web Search**: Integrated Tavily search for real-time information gathering
-- 💾 **Thread-Level Persistence**: Maintains conversation context using LangGraph's MemorySaver
-- 🔄 **State Graph Workflow**: Smart routing between agent and tool nodes based on agent decisions
-- 🛠️ **Extensible Tools**: Easy to add new tools through LangChain's tool system
+The backend is a Python application (`backend/agent.py`) using LangGraph to define and run an "agent" that answers questions and uses search tools when needed. Key components:
 
-### Agent Implementation Details
+- **Environment**: Uses virtual environment (venv) with dependencies in `requirements.txt`
+- **Agent State**: Maintains conversation state using LangGraph's MemorySaver
+- **Tools**: Includes TavilySearchResults for web searches
+- **Model**: Uses ChatOpenAI (gpt-4o mini) with streaming enabled
+- **System Prompt**: Provides high-level instructions to the AI about behavior and capabilities
+
+### 2. LangGraph Request Flow
+
+1. User message received through LangGraph Client SDK
+2. Message enters "agent" node in StateGraph
+3. GPT model processes message with system prompt
+4. If needed, transitions to "tools" node for web searches
+5. Returns to "agent" node for final response
+6. Streams response back to frontend
+
+<div style="padding: 20px; border-radius: 12px; text-align: left;">
+  <img src=".github/assets/langgraph-agent.png" width="600" style="border-radius: 12px;" alt="LangGraph Agent Architecture - Flow diagram showing agent nodes and state transitions"/>
+</div>
+
+
+### 3. Frontend (Next.js)
+
+The frontend uses Next.js and React with several key components:
+
+- **Contexts**: ChatContext (messages), ThreadContext (conversation sessions), ClientContext (LangGraph client)
+- **Components**: ChatThread, ChatWindow, ChatInput for UI
+- **Hooks**: useChatActions, useEventSource for data and streaming
+- **Client SDK**: Handles thread creation, message sending, and response streaming
+
+### 4. Data Flow
+
+1. User loads app → Client instance created
+2. New chat → thread_id created
+3. User message → streams to backend
+4. Agent processes → may use tools
+5. Response streams back → updates UI in real-time
+
+## Agent Implementation Details
 
 ```python
 # backend/agent.py highlights
@@ -54,7 +88,7 @@ tool_node = ToolNode(tools)
 
 # Initialize model with streaming
 model = ChatOpenAI(
-    model="gpt-4",
+    model="gpt-4o-mini",
     temperature=0.1,
     streaming=True
 ).bind_tools(tools)
@@ -71,7 +105,7 @@ When searching, be specific with your queries to get the most relevant results."
 The starter kit requires the following API keys:
 
 - **OpenAI API Key** (Required)
-  - Powers the GPT-4 model for agent reasoning
+  - Powers the gpt-4o mini model for agent reasoning
   - Get it from: [OpenAI Platform](https://platform.openai.com)
   ```env
   OPENAI_API_KEY=sk-...
@@ -88,36 +122,37 @@ The starter kit requires the following API keys:
 
 ```
 langgraph-starter-kit/
-├── frontend/                      # Next.js frontend application
-│   ├── app/                      # Next.js app directory
-│   │   ├── api/                 # API routes
-│   │   ├── layout.tsx          # Root layout
-│   │   └── page.tsx           # Home page
-│   ├── components/             # React components
+├── backend/                 # Python backend
+│   ├── agent.py           # Core ReAct agent implementation
+│   ├── langgraph.json    # LangGraph configuration
+│   └── requirements.txt  # Python dependencies
+├── frontend/              # Next.js frontend application
+│   ├── app/              # Next.js app directory
+│   │   ├── api/         # API routes
+│   │   ├── layout.tsx  # Root layout
+│   │   └── page.tsx   # Home page
+│   ├── components/     # React components
 │   │   ├── ChatComponent.tsx  # Main chat component
-│   │   ├── chat/             # Chat-related components
-│   │   └── ui/              # Shared UI components
-│   ├── contexts/              # React contexts
-│   │   ├── ChatContext.tsx   # Chat state management
-│   │   ├── ClientContext.tsx # LangGraph client provider
-│   │   └── ThreadContext.tsx # Thread state management
-│   ├── hooks/                # Custom React hooks
-│   │   ├── useChatActions.ts     # Chat interaction hooks
+│   │   ├── ErrorBoundary.tsx # Error handling
+│   │   ├── chat/            # Chat-related components
+│   │   └── ui/             # Shared UI components
+│   ├── contexts/          # React contexts
+│   │   ├── ChatContext.tsx    # Chat state management
+│   │   ├── ClientContext.tsx  # LangGraph client provider
+│   │   └── ThreadContext.tsx  # Thread state management
+│   ├── hooks/            # Custom React hooks
+│   │   ├── useChatActions.ts      # Chat interaction hooks
 │   │   ├── useChatStateActions.ts # Chat state management
-│   │   └── useEventSource.ts     # SSE handling
-│   ├── lib/                  # Utility functions
-│   │   ├── animations.ts    # Animation utilities
-│   │   └── utils.ts        # General utilities
-│   ├── public/              # Static assets
-│   │   └── *.svg           # SVG icons and images
-│   ├── types/               # TypeScript types
-│   │   ├── chat-context.ts # Chat context types
-│   │   └── chat.ts        # Chat-related types
-│   └── package.json        # Frontend dependencies
-└── backend/                 # Python backend
-    ├── agent.py           # Core ReAct agent implementation
-    ├── langgraph.json    # LangGraph configuration
-    └── requirements.txt  # Python dependencies
+│   │   ├── useEventSource.ts     # SSE handling
+│   │   └── useStreamProcessor.ts # Stream processing
+│   ├── lib/             # Utility functions
+│   │   ├── animations.ts # Animation utilities
+│   │   └── utils.ts     # General utilities
+│   └── types/          # TypeScript types
+│       ├── chat-context.ts # Chat context types
+│       ├── chat.ts       # Chat-related types
+│       └── index.ts     # Type exports
+└── package.json        # Root package.json
 ```
 
 ## 🚀 Quick Start
@@ -183,133 +218,14 @@ langgraph-starter-kit/
 
 Visit http://localhost:3000 to see your agent in action!
 
-## 🔨 Building with the SDK
-
-This starter kit demonstrates practical usage of the LangGraph Client JS SDK. Here are some key examples from our implementation:
-
-1. **Client Context Setup**
-   ```typescript
-   // contexts/ClientContext.tsx
-   import { Client } from "@langchain/langgraph-sdk";
-   
-   interface ClientContextValue {
-     client: Client | null;
-     isInitialized: boolean;
-     error: Error | null;
-   }
-   
-   export function ClientProvider({ children, config }: ClientProviderProps) {
-     const value = useMemo(() => {
-       try {
-         const client = new Client(config);
-         return {
-           client,
-           isInitialized: true,
-           error: null,
-         };
-       } catch (error) {
-         return {
-           client: null,
-           isInitialized: false,
-           error: error instanceof Error ? error : new Error('Failed to initialize client'),
-         };
-       }
-     }, [config]);
-   
-     return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;
-   }
-   ```
-
-2. **Chat Actions with Streaming**
-   ```typescript
-   // hooks/useChatActions.ts
-   export function useChatActions({ threadId: initialThreadId }: UseChatActionsProps = {}) {
-     const client = useClient();
-     const { loadThreadHistory } = useThread();
-     const { setIsLoading, addMessage, setStreamingContent } = useChat();
-   
-     const sendMessage = useCallback(async (content: string) => {
-       if (!client || !threadId) throw new Error('Chat not initialized');
-       
-       setIsLoading(true);
-       let currentContent = '';
-       let sources: string[] = [];
-   
-       try {
-         // Create a streaming run with the message
-         const stream = await client.runs.stream(threadId, getGraphId(), {
-           input: { messages: [{ role: 'user', content }] },
-           streamMode: ["messages-tuple", "messages"],
-           streamSubgraphs: true
-         });
-   
-         // Process the stream
-         for await (const chunk of stream) {
-           const { content, sources: sourceContent } = processStreamChunk(chunk);
-           if (content) {
-             currentContent += content;
-             setStreamingContent(currentContent);
-           }
-           if (sourceContent) {
-             sources.push(sourceContent);
-           }
-         }
-   
-         // Add the complete message after streaming
-         if (currentContent.trim()) {
-           addMessage({
-             role: 'assistant',
-             content: currentContent,
-             metadata: sources.length ? { sources } : undefined
-           });
-         }
-       } finally {
-         setIsLoading(false);
-         setStreamingContent('');
-       }
-     }, [client, threadId, addMessage, setStreamingContent]);
-   
-     return { sendMessage };
-   }
-   ```
-
-3. **Processing Stream Chunks**
-   ```typescript
-   // Utility function to process stream chunks
-   const processStreamChunk = (chunk: any): { content: string | null, sources: string | null } => {
-     if (chunk.event !== "messages") return { content: null, sources: null };
-     
-     const [messageData, metadata] = chunk.data;
-     
-     // Handle tool messages (sources)
-     if (metadata?.langgraph_node?.includes('tool') || 
-         messageData.additional_kwargs?.tool_calls || 
-         messageData.type === 'tool') {
-       return { content: null, sources: messageData.content || null };
-     }
-     
-     // Handle AI message chunks
-     if ((messageData.type === 'AIMessageChunk' || messageData.type === 'ai') && 
-         typeof messageData.content === 'string') {
-       return { content: messageData.content || null, sources: null };
-     }
-     
-     return { content: null, sources: null };
-   };
-   ```
-
-For complete SDK documentation and more examples, see our [LangGraph Client JS SDK Guide](frontend/LangGraph%20Client%20JS%20SDK%20Draft.md).
-
 ## 📚 Additional Resources
 
 - [LangGraph Documentation](https://python.langchain.com/docs/langgraph)
+- [LangGraph.js Documentation](https://langchain-ai.github.io/langgraphjs/)
 - [Building Agents with LangGraph](https://python.langchain.com/docs/langgraph/agents)
 - [Next.js Documentation](https://nextjs.org/docs)
-- [Shadcn/UI Components](https://ui.shadcn.com/) - UI components used in this starter
+- [Shadcn/UI Components](https://ui.shadcn.com/)
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
