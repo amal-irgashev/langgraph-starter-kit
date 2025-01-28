@@ -1,6 +1,7 @@
-// This hook provides functionality for managing chat actions like sending messages and initializing threads.
-// It handles thread creation, history loading, and message sending while managing loading states.
-// Used by chat components to interact with the chat backend and maintain chat state.
+/**
+ * Hook for managing chat interactions and message handling
+ * Provides functionality for sending messages and managing chat state
+ */
 
 'use client';
 
@@ -8,65 +9,53 @@ import { useCallback, useEffect, useState } from 'react';
 import { useClient } from '@/contexts/ClientContext';
 import { useThread } from '@/contexts/ThreadContext';
 import { useChat } from '@/contexts/ChatContext';
+import { useStreamProcessor } from './useStreamProcessor';
 import { Message } from '@/types/chat';
 
 interface UseChatActionsProps {
   threadId?: string;
 }
 
-// Utility function to get graph ID
+/**
+ * Utility function to get the LangGraph graph ID from environment variables
+ * @returns The configured graph ID or default value
+ */
 const getGraphId = () => process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID || 'react_agent';
-
-// Process stream chunk to extract content and sources
-const processStreamChunk = (chunk: any): { content: string | null, sources: string | null } => {
-  if (chunk.event !== "messages") return { content: null, sources: null };
-  
-  const [messageData, metadata] = chunk.data;
-  
-  // Handle tool messages (sources)
-  if (metadata?.langgraph_node?.includes('tool') || 
-      messageData.additional_kwargs?.tool_calls || 
-      messageData.type === 'tool') {
-    return { 
-      content: null, 
-      sources: messageData.content || null 
-    };
-  }
-  
-  // Handle AI message chunks and streaming content
-  if ((messageData.type === 'AIMessageChunk' || messageData.type === 'ai') && 
-      typeof messageData.content === 'string') {
-    return { 
-      content: messageData.content || null,
-      sources: null 
-    };
-  }
-  
-  return { content: null, sources: null };
-};
 
 export function useChatActions({ threadId: initialThreadId }: UseChatActionsProps = {}) {
   const client = useClient();
   const { loadThreadHistory } = useThread();
-  const { setIsLoading, addMessage, setStreamingContent, addRawMessage } = useChat();
+  const { 
+    setIsLoading, 
+    addMessage, 
+    setStreamingContent, 
+    addRawMessage 
+  } = useChat();
+  
   const [threadId, setThreadId] = useState<string | undefined>(initialThreadId);
   const [ready, setReady] = useState(false);
+
+  // Initialize stream processor with callbacks
+  const { processStream } = useStreamProcessor({
+    onContent: setStreamingContent,
+    onSources: (source) => console.log('Source received:', source),
+    onRawMessage: addRawMessage
+  });
 
   // Update threadId when initialThreadId changes
   useEffect(() => {
     setThreadId(initialThreadId);
   }, [initialThreadId]);
 
+  // Initialize chat and load history if needed
   useEffect(() => {
     async function init() {
       if (!client) return;
 
       try {
-        // Only load history if we have a threadId
         if (threadId) {
           await loadThreadHistory(threadId);
         }
-
         setReady(true);
       } catch (error) {
         console.error('Error initializing chat:', error);
@@ -77,23 +66,21 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
     init();
   }, [client, threadId, loadThreadHistory]);
 
+  /**
+   * Sends a message to the chat and processes the response stream
+   * @param content - The message content to send
+   */
   const sendMessage = useCallback(async (content: string) => {
     if (!client || !threadId) {
       throw new Error('Chat not initialized');
     }
 
     setIsLoading(true);
-    let currentContent = '';
-    let sources: string[] = [];
 
     try {
-      console.log('Using thread ID for message:', threadId);
-      
       // Add the user message immediately
       const userMessage: Message = { role: 'user', content };
       addMessage(userMessage);
-
-      console.log('Starting stream with message:', userMessage);
 
       // Create a streaming run with the message
       const stream = await client.runs.stream(threadId, getGraphId(), {
@@ -102,41 +89,20 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
         streamSubgraphs: true
       });
 
-      // Process the stream
-      for await (const chunk of stream) {
-        console.log('Received stream chunk:', chunk);
-        
-        // Add every chunk to raw messages for debug panel
-        addRawMessage(chunk);
-        
-        const { content, sources: sourceContent } = processStreamChunk(chunk);
-        if (content) {
-          currentContent += content;
-          console.log('Updated content:', currentContent);
-          setStreamingContent(currentContent);
-        }
-        if (sourceContent) {
-          sources.push(sourceContent);
-        }
-      }
+      // Process the stream and get final results
+      const { finalContent, allSources } = await processStream(stream);
 
-      console.log('Stream completed for thread:', threadId);
-      
-      // Add the complete assistant message with sources only after streaming is done
-      if (currentContent.trim()) {
+      // Add the complete assistant message with sources
+      if (finalContent.trim()) {
         const assistantMessage: Message = {
-          role: 'assistant' as const,
-          content: currentContent,
-          // If we have sources, add them as metadata
-          metadata: sources.length ? {
-            sources: sources
-          } : undefined
+          role: 'assistant',
+          content: finalContent,
+          metadata: allSources.length ? { sources: allSources } : undefined
         };
         addMessage(assistantMessage);
       }
+      
       setStreamingContent(''); // Clear streaming content
-
-      // Load updated thread history
       await loadThreadHistory(threadId);
     } catch (error) {
       console.error('Error sending message:', error);
@@ -144,7 +110,7 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
     } finally {
       setIsLoading(false);
     }
-  }, [client, threadId, addMessage, setStreamingContent, loadThreadHistory, setIsLoading, addRawMessage]);
+  }, [client, threadId, addMessage, processStream, setStreamingContent, loadThreadHistory, setIsLoading]);
 
   return {
     threadId,

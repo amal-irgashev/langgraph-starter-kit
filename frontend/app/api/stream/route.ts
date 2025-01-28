@@ -5,7 +5,7 @@ export const runtime = 'edge';
 
 export async function GET() {
   try {
-    // Create a new transform stream
+    // Create a transform stream for server-sent events (SSE)
     const stream = new TransformStream();
 
     return new Response(stream.readable, {
@@ -36,12 +36,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    // Validate required fields in request body
     validateRequestBody(body, ['threadId', 'message']);
     const { threadId, message } = body as { threadId: string; message: string };
 
     const apiUrl = getLangGraphApiUrl();
     const url = new URL(`${apiUrl}/runs/stream`);
 
+    // Initialize streaming connection to LangGraph API
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -51,10 +53,13 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        // Configure thread-specific settings
         configurable: {
           thread_id: threadId
         },
+        // Enable streaming for message tuples and individual messages
         streamMode: ["messages-tuple", "messages"],
+        // Enable streaming of subgraph execution details
         streamSubgraphs: true,
         messages: [{
           role: "user",
@@ -67,6 +72,7 @@ export async function POST(request: NextRequest) {
       throw new Error(`Stream connection failed: ${response.status} ${response.statusText}`);
     }
 
+    // Pipe the LangGraph API response directly to client
     return new Response(response.body, {
       headers: {
         'Content-Type': 'text/event-stream',

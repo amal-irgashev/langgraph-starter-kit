@@ -13,10 +13,10 @@ export function getLangGraphApiUrl(): string {
 }
 
 /**
- * Standard error response format
+ * Standard error response format for streaming endpoints
  */
 export function createErrorResponse(error: unknown, code: string, status = 500) {
-  console.error(`API Error [${code}]:`, error);
+  console.error(`Streaming Error [${code}]:`, error);
   return NextResponse.json(
     {
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -28,7 +28,7 @@ export function createErrorResponse(error: unknown, code: string, status = 500) 
 }
 
 /**
- * Validates required fields in the request body
+ * Validates required fields in the streaming request body
  */
 export function validateRequestBody(body: Record<string, unknown>, requiredFields: string[]) {
   const missingFields = requiredFields.filter(field => !body[field]);

@@ -12,6 +12,7 @@ import { ChatWindow } from './chat/chat-window';
 import { Menu, Code } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DebugPanel } from './chat/debug-panel';
+import { Message } from '@/types/chat';
 
 /**
  * Main chat component that orchestrates the chat interface including sidebar, messages,
@@ -123,7 +124,7 @@ export function ChatComponent() {
             showDebug && "w-1/2 border-r border-[#262626]"
           )}>
             <ChatWindow
-              messages={messages}
+              messages={messages as Message[]}
               isLoading={isLoading}
               onSendMessage={sendMessage}
               isReady={ready}

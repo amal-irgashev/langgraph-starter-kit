@@ -169,13 +169,10 @@ langgraph-starter-kit/
    ```
    Required environment variables:
    ```env
-   # Backend API URL (required)
-   NEXT_PUBLIC_API_URL=http://localhost:8000
+   # Required: LangGraph server URL (default port when running langgraph dev)
+   NEXT_PUBLIC_LANGGRAPH_API_URL=http://localhost:2024
    
-   # LangGraph API URL (required)
-   NEXT_PUBLIC_LANGGRAPH_API_URL=http://localhost:8123
-   
-   # LangGraph Graph ID (required)
+   # Required: LangGraph Graph ID
    NEXT_PUBLIC_LANGGRAPH_GRAPH_ID=react_agent
    ```
 

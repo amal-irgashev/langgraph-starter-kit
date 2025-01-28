@@ -13,6 +13,8 @@ import { DebugPanel } from './debug-panel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatHeader } from './chat-header';
 import { springTransition } from '@/lib/animations';
+import { Message } from '@/types/chat';
+
 
 /**
  * Main Chat component that orchestrates the entire chat interface
@@ -29,7 +31,7 @@ export function Chat() {
 
   // Filter out system/tool messages
   const filteredMessages = useMemo(() => messages.filter(message => 
-    !(message.event === 'messages' || 
+    !(message.role === 'assistant' || 
       (message.content && message.content.startsWith('[{') && message.content.endsWith('}]')))
   ), [messages]);
 
@@ -121,7 +123,7 @@ export function Chat() {
             transition={springTransition}
           >
             <ChatWindow
-              messages={filteredMessages}
+              messages={filteredMessages as Message[]}
               isLoading={chatLoading}
               onSendMessage={sendMessage}
               isReady={true}
