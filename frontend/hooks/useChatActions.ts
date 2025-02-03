@@ -24,7 +24,7 @@ const getGraphId = () => process.env.NEXT_PUBLIC_LANGGRAPH_GRAPH_ID || 'react_ag
 
 export function useChatActions({ threadId: initialThreadId }: UseChatActionsProps = {}) {
   const client = useClient();
-  const { loadThreadHistory } = useThread();
+  const { loadThreadHistory, createNewThread } = useThread();
   const { 
     setIsLoading, 
     addMessage, 
@@ -68,22 +68,30 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
 
   /**
    * Sends a message to the chat and processes the response stream
+   * Creates a new thread if none exists
    * @param content - The message content to send
    */
   const sendMessage = useCallback(async (content: string) => {
-    if (!client || !threadId) {
+    if (!client) {
       throw new Error('Chat not initialized');
     }
 
     setIsLoading(true);
 
     try {
+      // Create a new thread if none exists
+      let currentThreadId = threadId;
+      if (!currentThreadId) {
+        currentThreadId = await createNewThread();
+        setThreadId(currentThreadId);
+      }
+
       // Add the user message immediately
       const userMessage: Message = { role: 'user', content };
       addMessage(userMessage);
 
       // Create a streaming run with the message
-      const stream = await client.runs.stream(threadId, getGraphId(), {
+      const stream = await client.runs.stream(currentThreadId, getGraphId(), {
         input: { messages: [userMessage] },
         streamMode: ["messages-tuple", "messages"],
         streamSubgraphs: true
@@ -103,14 +111,14 @@ export function useChatActions({ threadId: initialThreadId }: UseChatActionsProp
       }
       
       setStreamingContent(''); // Clear streaming content
-      await loadThreadHistory(threadId);
+      await loadThreadHistory(currentThreadId);
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [client, threadId, addMessage, processStream, setStreamingContent, loadThreadHistory, setIsLoading]);
+  }, [client, threadId, addMessage, processStream, setStreamingContent, loadThreadHistory, setIsLoading, createNewThread]);
 
   return {
     threadId,

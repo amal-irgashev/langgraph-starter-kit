@@ -1,3 +1,10 @@
+/**
+ * ClientContext provides a React context for managing a LangGraph client instance.
+ * It handles client initialization, error states, and provides access to the client
+ * throughout the application via the useClient hook.
+ */
+
+
 'use client';
 
 import { createContext, useContext, ReactNode, useMemo } from 'react';

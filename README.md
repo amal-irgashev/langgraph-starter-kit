@@ -166,12 +166,17 @@ langgraph-starter-kit/
 
 2. Create and activate a virtual environment:
    ```bash
-   python -m venv venv
+   python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. Install dependencies:
    ```bash
+   # Ensure pip is properly installed and upgraded
+   python -m ensurepip --upgrade
+   pip install --upgrade pip
+   
+   # Install requirements
    pip install -r requirements.txt
    ```
 

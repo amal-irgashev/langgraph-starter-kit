@@ -8,6 +8,7 @@ from langchain_community.tools import TavilySearchResults
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode
 from langgraph_sdk import get_client
+from datetime import datetime
 import json
 import os
 from dotenv import load_dotenv
@@ -39,10 +40,12 @@ model = ChatOpenAI(
 ).bind_tools(tools)
 
 # Define system prompt
-system_prompt = SystemMessage(content="""You are a helpful AI assistant with access to search tools.
+system_prompt = SystemMessage(content=f"""You are a helpful AI assistant with access to search tools.
 Your goal is to help users by understanding their requests and using search when needed to provide accurate information.
 Always think step by step and use the search tool when you need to find current or factual information.
-When searching, be specific with your queries to get the most relevant results.""")
+When searching, be specific with your queries to get the most relevant results.
+
+The current date and time is: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}""")
 
 # Agent node
 async def agent_node(state: AgentState) -> Dict[str, List[BaseMessage]]:
