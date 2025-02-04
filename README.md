@@ -8,7 +8,7 @@
 
 **A production-ready starter kit for building autonomous agents with LangGraph and Next.js**
 
-[Documentation](https://python.langchain.com/docs/langgraph) | [LangGraph Client SDK](frontend/LangGraph%20Client%20JS%20SDK%20Draft.md) | [How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/)
+[Documentation](https://python.langchain.com/docs/langgraph) | [LangGraph Client SDK](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md) ([Google Docs](https://docs.google.com/document/d/1X3A9YPRtJ5wVKeXxM0eC3QdVg5qJlmUDCTIcPRQOULY/edit?usp=sharing)) | [How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/)
 
 </div>
 
@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-This starter kit provides a foundation for building autonomous agents using LangGraph and the LangGraph Client JS SDK. It serves as a practical implementation companion to the [LangGraph Client JS SDK documentation](frontend/LangGraph%20Client%20JS%20SDK%20Draft.md), demonstrating how to build production-ready agent applications.
+This starter kit provides a foundation for building autonomous agents using LangGraph and the LangGraph Client JS SDK. It serves as a practical implementation companion to the LangGraph Client JS SDK documentation (available both [locally](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md) and on [Google Docs](https://docs.google.com/document/d/1X3A9YPRtJ5wVKeXxM0eC3QdVg5qJlmUDCTIcPRQOULY/edit?usp=sharing)), demonstrating how to build production-ready agent applications.
 
 ### What's Inside
 
@@ -190,6 +190,8 @@ langgraph-starter-kit/
    ```bash
    langgraph dev
    ```
+
+> **Note**: If you prefer to use Amazon Bedrock instead of OpenAI, an alternative implementation is available in `bedrock_example_agent.py`. This version uses the Anthropic Claude 3 Haiku model through the Bedrock runtime.
 
 ### Frontend Setup
 
