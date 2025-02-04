@@ -1,3 +1,13 @@
+/**
+ * API Route for Streaming Communication
+ * 
+ * This file implements a Next.js API route that handles streaming communication with the LangGraph API.
+ * It provides endpoints for establishing SSE (Server-Sent Events) connections and processing chat messages,
+ * acting as a bridge between the frontend client and the LangGraph backend service.
+ */
+
+
+
 import { NextRequest } from 'next/server';
 import { getLangGraphApiUrl, createErrorResponse, validateRequestBody } from '../utils';
 

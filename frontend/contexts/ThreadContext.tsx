@@ -1,3 +1,24 @@
+/**
+ * ThreadContext Overview
+ * 
+ * Purpose:
+ * - Manages the state related to chat threads (list of threads, current thread ID, loading threads, creating/deleting threads).
+ * 
+ * How it works:
+ * - Uses `createContext` to create `ThreadContext`.
+ * 
+ * ThreadProvider component:
+ * - Manages `threads`, `currentThreadId`, and `isLoading` state using `useState`.
+ * - Uses `useClient` hook to access the LangGraph client from `ClientContext`.
+ * - Provides functions like `loadThreads`, `createNewThread`, `loadThreadHistory`, `deleteThread`, 
+ *   `deleteAllThreads`, and `setCurrentThreadId`. These functions use the LangGraph client to interact 
+ *   with the backend API to manage threads.
+ * - Provides the `ThreadContext.Provider` with a `value` object containing thread state and management functions.
+ * 
+ * useThread hook:
+ * - Allows components to access thread state and management functions.
+ */
+
 'use client';
 
 // Import statements and module declarations

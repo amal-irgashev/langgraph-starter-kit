@@ -1,3 +1,7 @@
+/**
+ * Utility functions for API routes
+ */
+
 import { NextResponse } from 'next/server';
 
 /**
