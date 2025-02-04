@@ -1,7 +1,7 @@
 <div align="center">
 <h1 align="center"> LangGraph + Next JS Starter Kit</h1>
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![Next.js 14+](https://img.shields.io/badge/Next.js-14+-black.svg?style=flat&logo=next.js&logoColor=white)](https://nextjs.org)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.2.0-orange.svg?style=flat&logo=chainlink&logoColor=white)](https://python.langchain.com/docs/langgraph)
 [![LangChain](https://img.shields.io/badge/LangChain-0.1.0-teal.svg?style=flat&logo=chainlink&logoColor=white)](https://python.langchain.com)
@@ -159,18 +159,33 @@ langgraph-starter-kit/
 
 ### Backend Setup
 
-1. Navigate to the backend directory:
+1. Ensure Python 3.11+ is installed:
+   ```bash
+   # Check Python version
+   python3 --version
+   
+   # If needed, install Python 3.11+
+   # On macOS with Homebrew:
+   brew install python@3.11
+   # On Ubuntu/Debian:
+   sudo apt install python3.11
+   # On Windows:
+   # Download from https://www.python.org/downloads/
+   ```
+
+2. Navigate to the backend directory:
    ```bash
    cd backend
    ```
 
-2. Create and activate a virtual environment:
+3. Create and activate a virtual environment:
    ```bash
-   python3 -m venv venv
+   # Create venv with Python 3.11
+   python3.11 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. Install dependencies:
+4. Install dependencies:
    ```bash
    # Ensure pip is properly installed and upgraded
    python -m ensurepip --upgrade
@@ -180,13 +195,13 @@ langgraph-starter-kit/
    pip install -r requirements.txt
    ```
 
-4. Configure environment:
+5. Configure environment:
    ```bash
    cp .env.example .env
    # Edit .env with your API keys
    ```
 
-5. Start the LangGraph server:
+6. Start the LangGraph server:
    ```bash
    langgraph dev
    ```
