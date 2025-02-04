@@ -43,6 +43,65 @@ const messageVariants = {
   exit: { opacity: 0, x: 20 }
 };
 
+// Helper function to parse streaming content
+const parseStreamingContent = (content: any): string => {
+  if (!content) return '';
+  
+  try {
+    // If it's already a string, return it
+    if (typeof content === 'string') {
+      return content.trim();
+    }
+    
+    // If it's an array of text chunks
+    if (Array.isArray(content)) {
+      return content.reduce((acc, chunk) => {
+        // Handle text chunks in the format {type: "text", text: string, index: number}
+        if (typeof chunk === 'object' && chunk.type === 'text' && chunk.text) {
+          return acc + chunk.text;
+        }
+        return acc;
+      }, '');
+    }
+    
+    // If it's a JSON string, parse it and extract text
+    if (typeof content === 'string' && (content.startsWith('[') || content.startsWith('{'))) {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed)) {
+        return parsed.reduce((acc, chunk) => {
+          if (typeof chunk === 'object' && chunk.type === 'text' && chunk.text) {
+            return acc + chunk.text;
+          }
+          return acc;
+        }, '');
+      }
+    }
+    
+    // Fallback to JSON stringify for other objects
+    if (typeof content === 'object') {
+      return JSON.stringify(content);
+    }
+    
+    return String(content).trim();
+  } catch (e) {
+    // If parsing fails, return the original content as string
+    return String(content).trim();
+  }
+};
+
+// Helper function to normalize content
+const normalizeContent = (content: any): string => {
+  if (content === null || content === undefined) return '';
+  
+  const parsedContent = parseStreamingContent(content);
+  return parsedContent.replace(/\s+/g, ' ').trim();
+};
+
+// Helper function to check if content is string and not empty
+const isValidContent = (content: any): content is string => {
+  return typeof content === 'string' && content.length > 0;
+};
+
 function consolidateStreamingContent(messages: RawMessage[]): ConsolidatedMessage[] {
   const consolidated: ConsolidatedMessage[] = [];
   let currentContent = '';
@@ -51,18 +110,13 @@ function consolidateStreamingContent(messages: RawMessage[]): ConsolidatedMessag
   let lastEventType = '';
   let currentState: Record<string, unknown> | null = null;
 
-  // Helper function to normalize content
-  const normalizeContent = (content: string) => {
-    return content.replace(/\s+/g, ' ').trim();
-  };
-
   // Helper function to flush current content
   const flushCurrentContent = () => {
     if (currentContent || currentState) {
       consolidated.push({
         event: 'stream_state',
         data: {
-          content: currentContent ? normalizeContent(currentContent) : '',
+          content: normalizeContent(currentContent),
           metadata: currentMetadata,
           state: currentState,
           timestamp: new Date().toISOString()
@@ -97,12 +151,12 @@ function consolidateStreamingContent(messages: RawMessage[]): ConsolidatedMessag
       if (messageData?.type === 'AIMessageChunk') {
         if (lastEventType !== 'streaming' || threadId !== currentThreadId) {
           flushCurrentContent();
-          currentContent = messageData.content || '';
+          currentContent = normalizeContent(messageData.content);
           currentMetadata = metadata;
         } else {
-          const newContent = messageData.content || '';
-          if (newContent) {
-            currentContent += (currentContent && !currentContent.endsWith(' ') ? ' ' : '') + newContent;
+          const newContent = normalizeContent(messageData.content);
+          if (isValidContent(newContent)) {
+            currentContent += (isValidContent(currentContent) && !currentContent.endsWith(' ') ? ' ' : '') + newContent;
           }
           currentMetadata = metadata;
         }
@@ -113,7 +167,7 @@ function consolidateStreamingContent(messages: RawMessage[]): ConsolidatedMessag
         consolidated.push({
           event: 'messages',
           data: [
-            { ...messageData, content: messageData.content ? normalizeContent(messageData.content) : '' },
+            { ...messageData, content: normalizeContent(messageData.content) },
             metadata
           ]
         });
