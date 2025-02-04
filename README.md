@@ -18,7 +18,7 @@
 
 ## 🎯 Overview
 
-This starter kit provides a foundation for building autonomous agents using LangGraph and the LangGraph Client JS SDK. It serves as a practical implementation companion to the LangGraph Client JS SDK documentation (available both [locally](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md) and on [Google Docs](https://docs.google.com/document/d/1X3A9YPRtJ5wVKeXxM0eC3QdVg5qJlmUDCTIcPRQOULY/edit?usp=sharing)), demonstrating how to build production-ready agent applications.
+This starter kit provides a foundation for building autonomous agents using LangGraph and the LangGraph Client JS SDK. It serves as a practical implementation companion to the LangGraph Client JS SDK documentation (available both [locally](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md), demonstrating how to build production-ready agent applications.
 
 ### What's Inside
 
