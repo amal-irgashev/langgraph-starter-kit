@@ -8,7 +8,7 @@
 
 **A production-ready starter kit for building autonomous agents with LangGraph and Next.js**
 
-[Documentation](https://python.langchain.com/docs/langgraph) | [LangGraph Client SDK](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md) ([Google Docs](https://docs.google.com/document/d/1X3A9YPRtJ5wVKeXxM0eC3QdVg5qJlmUDCTIcPRQOULY/edit?usp=sharing)) | [How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/)
+[Documentation](https://python.langchain.com/docs/langgraph) | [LangGraph Client SDK](frontend/LangGraph%20Client%20JS%20SDK%20Main%20Draft.md) | [How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/)
 
 </div>
 
