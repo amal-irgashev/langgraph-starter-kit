@@ -1,3 +1,14 @@
+/**
+ * ChatContext provides a React context for managing chat state and actions.
+ * 
+ * Key functionality:
+ * - Creates ChatContext using createContext
+ * - ChatProvider component manages state via:
+ *   - useState with initialChatState from types/chat-context.ts
+ *   - useChatStateActions hook for memoized state update functions
+ *   - Provides context value with state and actions to children components
+ */
+
 'use client';
 
 import React, { createContext, useContext, useState, useMemo } from 'react';
